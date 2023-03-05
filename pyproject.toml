@@ -31,6 +31,8 @@ dependencies = [
     "torch",
     "torchvision",
     "datasets",
+    "transformers",
+    "timm",
     "matplotlib",
     "python-dotenv",
     "typer[all]",

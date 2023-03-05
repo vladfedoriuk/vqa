@@ -48,6 +48,8 @@ scp -r username@from_host:/remote/directory/ /local/directory/
 export SINGULARITYENV_WANDB_API_KEY=<your-value>
 export SINGULARITYENV_WANDB_ENTITY=<your-entity-name>
 export HF_DATASETS_CACHE="/shared/sets/datasets/huggingface_cache"
+export DATASETS_PATH="/shared/sets/datasets"
+export SAVE_ARTIFACTS_PATH="/.local/share"
 cd scripts && sbatch run-jupyter.sh
 ```
 - To access the notebook, one can use a command like this:

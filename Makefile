@@ -16,14 +16,12 @@ REQUIREMENTS?=requirements
 requirements-base: # Compile base requirements
 	python -m piptools compile \
 	-v \
-	--resolver backtracking \
 	--output-file=requirements/base.txt \
 	pyproject.toml
 
 requirements-dev: requirements-base # Compile dev requirements
 	python -m piptools compile \
 	-v \
-	--resolver backtracking \
 	--extra=dev \
 	--output-file=requirements/dev.txt \
 	pyproject.toml
@@ -31,7 +29,28 @@ requirements-dev: requirements-base # Compile dev requirements
 requirements: requirements-base requirements-dev
 .PHONY: requirements
 
-install-base:  # Install the app locally
+_upgrade-pip: # Upgrade pip
+	python -m pip install --upgrade pip
+
+upgrade-base: _upgrade-pip # Upgrade base requirements
+	python -m piptools compile \
+	-v \
+	--upgrade \
+	--output-file=requirements/base.txt \
+	pyproject.toml
+
+upgrade-dev: upgrade-base # Upgrade dev requirements
+	python -m piptools compile \
+	-v \
+	--upgrade \
+	--extra=dev \
+	--output-file=requirements/dev.txt \
+	pyproject.toml
+
+upgrade: upgrade-base upgrade-dev # Upgrade all requirements
+.PHONY: upgrade
+
+install-base: # Install the app locally
 	python -m pip install -r $(REQUIREMENTS)/base.txt .
 .PHONY: install-base
 
@@ -40,6 +59,9 @@ install-dev: install-base # Install the app locally with dev dependencies
 		-r $(REQUIREMENTS)/dev.txt \
 		--editable .
 .PHONY: install-dev
+
+install: install-dev # Install the app locally with dev dependencies
+.PHONY: install
 
 init-dev: install-dev # Install the app locally with dev dependencies and install pre-commit hooks
 	pre-commit install

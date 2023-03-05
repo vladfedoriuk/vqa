@@ -1,0 +1,103 @@
+[project]
+name = "vqa"
+version = "0.0.1"
+authors = [
+    { name="Vladyslav Fedoriuk", email="vlad.fedoriuk@student.uj.edu.pl" }
+]
+maintainers = [
+    { name="Vladyslav Fedoriuk", email="vlad.fedoriuk@student.uj.edu.pl" }
+]
+description = "A collection of experiments and explorations related to Visual Question Answering."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Operating System :: OS Independent",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Neural Networks",
+    "Topic :: Scientific/Engineering :: Natural Language Processing",
+    "Topic :: Scientific/Engineering :: Deep Learning",
+    "Topic :: Scientific/Engineering :: Machine Learning",
+    "Topic :: Scientific/Engineering :: Computer Science",
+    "Topic :: Scientific/Engineering :: Data Science",
+    "Topic :: Scientific/Engineering :: Multimodal Learning",
+]
+keywords = [ "VQA", "Visual Question Answering" ]
+
+dependencies = [
+    "torch",
+    "torchvision",
+    "datasets",
+    "matplotlib",
+    "python-dotenv",
+    "typer[all]",
+    "wandb",
+    "scikit-learn",
+]
+
+[project.urls]
+homepage = "https://github.com/vladfedoriuk/vqa"
+repository = "https://github.com/vladfedoriuk/vqa"
+"Bug Tracker" = "https://github.com/vladfedoriuk/vqa/issues"
+
+
+[project.optional-dependencies]
+dev = [
+    "jupyter",
+    "ipywidgets",
+    "pandas",
+    "scipy",
+    "plotly",
+    "pip-tools",
+    "black[jupyter]",
+    "isort",
+    "flake8",
+    "flake8-comprehensions",
+    "flake8-debugger",
+    "flake8-bugbear",
+    "flake8-no-pep420",
+    "flake8-eradicate",
+    "flake8-docstrings",
+    "pydocstyle[toml]",
+    "pre-commit",
+]
+
+
+[tool.black]
+line-length = 88
+target_version = ['py310']
+include = '\.pyi?$'
+force-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.ipynb_checkpoints
+    | \.egg-info
+    | _build
+    | buck-out
+    | build
+    | dist
+    | cache
+    | wandb
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+py_version=310
+known_first_party = "vqa"
+
+[tool.pydocstyle]
+convention = "numpy"
+
+[tool.setuptools]
+py-modules = ["notebooks", "config"]

@@ -1,0 +1,42 @@
+name: Build and check code quality
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        cache-dependency-path: requirements/*.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements/base.txt .
+    - name: Check for the dependencies conflicts
+      run: python -m pip check
+    - name: Lint with flake8
+      run: |
+        python -m pip install flake8==5.0.4 \
+            flake8-comprehensions==3.10.0 \
+            flake8-debugger==4.1.2 \
+            flake8-bugbear==22.10.27 \
+            flake8-no-pep420==2.3.0 \
+            flake8-eradicate==1.4.0 \
+            flake8-docstrings==1.6.0
+        python -m flake8 .
+      continue-on-error: true
+    - name: Lint with black
+      run: |
+        python -m pip install black[jupyter]==22.10.0
+        python -m black --check --verbose .
+      continue-on-error: true
+    - name: Lint with isort
+      run: |
+        python -m pip install isort==5.10.1
+        python -m isort --check --diff .
+      continue-on-error: true

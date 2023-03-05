@@ -1,0 +1,12 @@
+[flake8]
+extend-ignore = E203, W503
+exclude =
+    .git,
+    __pycache__,
+    dist,
+    build,
+    _build,
+    buck-out,
+    cache
+max-complexity = 10
+max-line-length = 88

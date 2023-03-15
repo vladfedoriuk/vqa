@@ -10,12 +10,12 @@ stages:
       md5: a8bdadf3dc81a0b92b7d8f35f81b5edf
       size: 370864
     - path: pipelines/process_daquar.py
-      md5: c9d114ae8002e328e5aee15acde32886
-      size: 2854
+      md5: b31565ccfa8e2e7789d54ff9b02e2854
+      size: 2763
     outs:
     - path: data/processed/daquar/daquar_eval_flattened.csv
-      md5: f13adf851d6a0c466d58413186de7ede
-      size: 370352
+      md5: 3ef80b708d05da1736d2adc8c7572382
+      size: 338651
     - path: data/processed/daquar/daquar_train_flattened.csv
-      md5: 83c9fcda86c4adcdc34652c67b539904
-      size: 442599
+      md5: ac0e3eb5a1a9307e96f787824ea3cdff
+      size: 404868

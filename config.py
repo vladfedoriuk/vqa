@@ -23,3 +23,14 @@ WANDB_ENTITY: Final[str] = os.getenv("WANDB_ENTITY", "")
 HF_DATASETS_CACHE: Final[Path] = Path(
     os.getenv("HF_DATASETS_CACHE", DATASETS_PATH / "huggingface_cache")
 )
+
+# A directory where the DAQUAR dataset can be found.
+# The DAQUAR dataset is tracked with DVC.
+# If you don't have it locally, you can download it with:
+# dvc pull
+RAW_DAQUAR_PATH: Final[Path] = Path(__file__).parent / "data" / "raw" / "daquar"
+
+# A directory where the processed DAQUAR dataset will be saved.
+PROCESSED_DAQUAR_PATH: Final[Path] = (
+    Path(__file__).parent / "data" / "processed" / "daquar"
+)

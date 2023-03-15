@@ -7,21 +7,11 @@ The pipeline includes:
 - Flattening the comma-separated answers.
 - Saving the datasets as CSV files.
 """
-from pathlib import Path
 from typing import Final
 
 import pandas as pd
 
-# A directory where the DAQUAR dataset can be found.
-# The DAQUAR dataset is tracked with DVC.
-# If you don't have it locally, you can download it with:
-# dvc pull
-RAW_DAQUAR_PATH: Final[Path] = Path(__file__).parent.parent / "data" / "raw" / "daquar"
-
-# A directory where the processed DAQUAR dataset will be saved.
-PROCESSED_DAQUAR_PATH: Final[Path] = (
-    Path(__file__).parent.parent / "data" / "processed" / "daquar"
-)
+from config import PROCESSED_DAQUAR_PATH, RAW_DAQUAR_PATH
 
 # A tuple containing the names of the training and evaluation data files.
 DAQUAR_DATA_FILES: Final[tuple[str, str]] = (
@@ -67,15 +57,22 @@ def save_flatten_data(
     :param flattened_eval_data: The flattened evaluation data.
     :return: None
     """
-    flattened_train_data.to_csv(PROCESSED_DAQUAR_PATH / "daquar_train_flattened.csv")
-    flattened_eval_data.to_csv(PROCESSED_DAQUAR_PATH / "daquar_eval_flattened.csv")
+    flattened_train_data.to_csv(
+        PROCESSED_DAQUAR_PATH / "daquar_train_flattened.csv", index=False
+    )
+    flattened_eval_data.to_csv(
+        PROCESSED_DAQUAR_PATH / "daquar_eval_flattened.csv", index=False
+    )
 
 
 def flatten_multiple_answers(
     data: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Flatten multiple answers in a single row.
+    Flatten multiple, comma-separated answers into separate rows.
+
+    For each row with multiple answers, the function creates a new row for each answer.
+    The new rows are identical to the original row, except for the answer column.
 
     :param data: A dataframe with multiple answers in a single row.
     :return: A dataframe with a single answer in a single row.

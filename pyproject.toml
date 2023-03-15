@@ -33,7 +33,7 @@ dependencies = [
     "datasets",
     "transformers",
     "timm",
-    "dvc",
+    "dvc[ssh]",
     "matplotlib",
     "python-dotenv",
     "typer[all]",

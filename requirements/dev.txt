@@ -39,7 +39,9 @@ asttokens==2.2.1
 async-timeout==4.0.2
     # via aiohttp
 asyncssh==2.13.1
-    # via scmrepo
+    # via
+    #   scmrepo
+    #   sshfs
 atpublic==3.1.1
     # via flufl-lock
 attrs==22.2.0
@@ -141,8 +143,10 @@ dulwich==0.21.3
     # via
     #   dvc-studio-client
     #   scmrepo
-dvc==2.50.0
-    # via vqa (pyproject.toml)
+dvc[ssh]==2.50.0
+    # via
+    #   dvc-ssh
+    #   vqa (pyproject.toml)
 dvc-data==0.44.1
     # via dvc
 dvc-http==2.30.2
@@ -150,6 +154,8 @@ dvc-http==2.30.2
 dvc-objects==0.21.1
     # via dvc-data
 dvc-render==0.2.0
+    # via dvc
+dvc-ssh==2.21
     # via dvc
 dvc-studio-client==0.6.0
     # via dvc
@@ -206,6 +212,7 @@ fsspec[http]==2023.3.0
     #   dvc-http
     #   dvc-objects
     #   scmrepo
+    #   sshfs
 funcy==1.18
     # via
     #   dvc
@@ -633,6 +640,8 @@ soupsieve==2.4
     # via beautifulsoup4
 sqltrie==0.3.0
     # via dvc-data
+sshfs[bcrypt]==2023.1.0
+    # via dvc-ssh
 stack-data==0.6.2
     # via ipython
 tabulate==0.9.0

@@ -1,0 +1,10 @@
+stages:
+  process_daquar:
+    cmd: python pipelines/process_daquar.py
+    deps:
+    - data/raw/daquar/data_eval.csv
+    - data/raw/daquar/data_train.csv
+    - pipelines/process_daquar.py
+    outs:
+    - data/processed/daquar/daquar_train_flattened.csv
+    - data/processed/daquar/daquar_eval_flattened.csv

@@ -1,0 +1,5 @@
+[core]
+    remote = gmum
+    autostage = true
+['remote "gmum"']
+    url = ssh://z1158649@gw.gmum/home/z1158649/local/share

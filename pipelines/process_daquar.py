@@ -7,16 +7,13 @@ The pipeline includes:
 - Flattening the comma-separated answers.
 - Saving the datasets as CSV files.
 """
-from typing import Final
-
 import pandas as pd
 
-from config import PROCESSED_DAQUAR_PATH, RAW_DAQUAR_PATH
-
-# A tuple containing the names of the training and evaluation data files.
-DAQUAR_DATA_FILES: Final[tuple[str, str]] = (
-    "data_train.csv",
-    "data_eval.csv",
+from config.datasets.daquar import (
+    PROCESSED_DAQUAR_DATA_FILES,
+    PROCESSED_DAQUAR_PATH,
+    RAW_DAQUAR_DATA_FILES,
+    RAW_DAQUAR_PATH,
 )
 
 
@@ -26,7 +23,7 @@ def load_daquar_data() -> tuple[pd.DataFrame, pd.DataFrame]:
 
     :return: A tuple containing training and evaluation dataframes respectively.
     """
-    train_data_file, eval_data_file = DAQUAR_DATA_FILES
+    train_data_file, eval_data_file = RAW_DAQUAR_DATA_FILES
     train_data = pd.read_csv(RAW_DAQUAR_PATH / train_data_file)
     eval_data = pd.read_csv(RAW_DAQUAR_PATH / eval_data_file)
     return train_data, eval_data
@@ -57,12 +54,9 @@ def save_flatten_data(
     :param flattened_eval_data: The flattened evaluation data.
     :return: None
     """
-    flattened_train_data.to_csv(
-        PROCESSED_DAQUAR_PATH / "daquar_train_flattened.csv", index=False
-    )
-    flattened_eval_data.to_csv(
-        PROCESSED_DAQUAR_PATH / "daquar_eval_flattened.csv", index=False
-    )
+    train_data_file, eval_data_file = PROCESSED_DAQUAR_DATA_FILES
+    flattened_train_data.to_csv(PROCESSED_DAQUAR_PATH / train_data_file, index=False)
+    flattened_eval_data.to_csv(PROCESSED_DAQUAR_PATH / eval_data_file, index=False)
 
 
 def flatten_multiple_answers(

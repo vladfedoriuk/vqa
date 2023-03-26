@@ -9,6 +9,7 @@ The module contains the following constants:
 
 - :const:`device` - A device to be used.
 """
+from collections.abc import Callable, Sequence
 from typing import Any, Final
 
 import torch
@@ -43,3 +44,20 @@ def squeeze_dict_of_tensors(
     :return: The squeezed dict of tensors.
     """
     return {key: value.squeeze() for key, value in dict_of_tensors.items()}
+
+
+def freeze_model_parameters(model, excludes: Sequence[Callable[[str], bool]] = ()):
+    """
+    Freezes some model parameters.
+
+    One can specify which types of parameters to freeze by providing excludes callables.
+    An 'exclude' callable accepts a name of a parameter and is expected to return
+    a boolean value, meaning whether the parameter should require gradient or not.
+
+    :param model: A model to partially freeze.
+    :param excludes: A sequence of 'exclude' callables.
+    """
+    for name, param in model.named_parameters():
+        param.requires_grad = False
+        if any(exclude(name) for exclude in excludes):
+            param.requires_grad = True

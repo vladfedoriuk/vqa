@@ -20,7 +20,7 @@ from lightningmodules.classification import MultiModalClassificationModule
 from loggers.wandb import get_lightning_logger
 from models.fusion.simple_cat import SimpleCatFusionModel
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
-from utils.torch import ensure_reproducibility
+from utils.torch import ensure_reproducibility, freeze_model_parameters
 
 
 def experiment(
@@ -54,9 +54,15 @@ def experiment(
     tokenizer = AutoTokenizer.from_pretrained(text_encoder_backbone)
     text_encoder = AutoModel.from_pretrained(text_encoder_backbone)
 
+    # Freeze the text encoder parameters.
+    freeze_model_parameters(text_encoder)
+
     # Initialize the image processor and model for the image encoder.
     image_processor = AutoImageProcessor.from_pretrained(image_encoder_backbone)
     image_encoder = AutoModel.from_pretrained(image_encoder_backbone)
+
+    # Freeze the image encoder parameters.
+    freeze_model_parameters(image_encoder)
 
     # Create a trainer.
     trainer = pl.Trainer(
@@ -65,7 +71,6 @@ def experiment(
             LogClassificationPredictionSamplesCallback(
                 logger=logger,
                 answer_space=answer_space,
-                num_samples=10,
             )
         ],
     )

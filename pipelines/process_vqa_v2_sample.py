@@ -1,4 +1,10 @@
-"""Answers space processing for the VQA V2 sample dataset."""
+"""
+Answers space processing for the VQA V2 sample dataset.
+
+The full VQAv2 dataset can be found:
+
+https://visualqa.org/index.html
+"""
 import itertools
 from pathlib import Path
 

@@ -1,6 +1,10 @@
 """
 The pipelines defined for the datasets.
 
+The pipelines leverage the DVC framework to track the datasets.
+
+https://dvc.org/doc/start/data-management/data-pipelines
+
 Currently, the supported pipelines are: DAQUAR.
 
 The DAQUAR pipeline is used to process the DAQUAR dataset:

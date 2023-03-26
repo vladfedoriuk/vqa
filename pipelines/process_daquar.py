@@ -1,12 +1,16 @@
 """
 The processing pipeline for the DAQUAR dataset.
 
+The original DAQUAR dataset can be found:
+
+https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/research/vision-and-language/visual-turing-challenge/
+
 The pipeline includes:
 
 - Loading the dataset.
 - Flattening the comma-separated answers.
 - Saving the datasets as CSV files.
-"""
+"""  # noqa: E501
 import pandas as pd
 
 from config.datasets.daquar import (

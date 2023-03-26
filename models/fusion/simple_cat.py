@@ -1,4 +1,13 @@
-"""Simple concatenation fusion model."""
+"""
+Simple concatenation fusion model.
+
+The model is a simple concatenation fusion model.
+
+See:
+
+- https://github.com/tezansahu/VQA-With-Multimodal-Transformers/
+- https://github.com/SatyamGaba/visual_question_answering
+"""
 import torch
 from torch import nn
 

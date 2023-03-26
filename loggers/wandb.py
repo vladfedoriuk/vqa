@@ -1,6 +1,6 @@
 """A module contains the logger functionalities for Weights & Biases."""
 
-from pytorch_lightning.loggers import WandbLogger
+from lightning.pytorch.loggers.wandb import WandbLogger
 
 from config.env import WANDB_PROJECT
 

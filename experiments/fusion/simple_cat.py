@@ -67,6 +67,7 @@ def experiment(
     # Create a trainer.
     trainer = pl.Trainer(
         accelerator="gpu",
+        logger=logger,
         devices=1,
         num_nodes=1,
         strategy="ddp",

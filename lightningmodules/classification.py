@@ -25,7 +25,9 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param text_encoder: The text encoder.
         """
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(
+            ignore=["classifier", "image_encoder", "text_encoder"]
+        )
 
         self.classifier = classifier
         self.image_encoder = image_encoder

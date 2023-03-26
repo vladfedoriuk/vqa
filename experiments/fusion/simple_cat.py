@@ -66,6 +66,10 @@ def experiment(
 
     # Create a trainer.
     trainer = pl.Trainer(
+        accelerator="gpu",
+        devices=1,
+        num_nodes=1,
+        strategy="ddp",
         max_epochs=10,
         callbacks=[
             LogClassificationPredictionSamplesCallback(

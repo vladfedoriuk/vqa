@@ -8,3 +8,9 @@ stages:
     outs:
     - data/processed/daquar/daquar_train_flattened.csv
     - data/processed/daquar/daquar_eval_flattened.csv
+  generate_vqa_v2_sample_answers_space:
+    cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
+    deps:
+    - pipelines/process_vqa_v2_sample.py
+    outs:
+    - data/processed/vqa_v2/vqa_v2_sample_answers_space.json

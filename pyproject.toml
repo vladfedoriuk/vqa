@@ -39,6 +39,7 @@ dependencies = [
     "typer[all]",
     "wandb",
     "scikit-learn",
+    "lightning",
 ]
 
 [project.urls]

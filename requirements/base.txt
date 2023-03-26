@@ -19,10 +19,17 @@ antlr4-python3-runtime==4.9.3
     # via
     #   hydra-core
     #   omegaconf
+anyio==3.6.2
+    # via
+    #   httpcore
+    #   starlette
+    #   watchfiles
 appdirs==1.4.4
     # via
     #   iterative-telemetry
     #   wandb
+arrow==1.2.3
+    # via lightning
 async-timeout==4.0.2
     # via aiohttp
 asyncssh==2.13.1
@@ -36,12 +43,18 @@ attrs==22.2.0
     #   aiohttp
     #   dvc-data
     #   sqltrie
+beautifulsoup4==4.12.0
+    # via lightning
 billiard==3.6.4.0
     # via celery
+blessed==1.20.0
+    # via inquirer
 celery==5.2.7
     # via dvc-task
 certifi==2022.12.7
     # via
+    #   httpcore
+    #   httpx
     #   requests
     #   sentry-sdk
 cffi==1.15.1
@@ -58,7 +71,10 @@ click==8.1.3
     #   click-didyoumean
     #   click-plugins
     #   click-repl
+    #   lightning
+    #   lightning-cloud
     #   typer
+    #   uvicorn
     #   wandb
 click-didyoumean==0.3.0
     # via celery
@@ -76,12 +92,18 @@ configobj==5.0.8
     # via dvc
 contourpy==1.0.7
     # via matplotlib
+croniter==1.3.8
+    # via lightning
 cryptography==39.0.2
     # via asyncssh
 cycler==0.11.0
     # via matplotlib
 datasets==2.10.1
     # via vqa (pyproject.toml)
+dateutils==0.6.12
+    # via lightning
+deepdiff==6.3.0
+    # via lightning
 dictdiffer==0.9.0
     # via dvc-data
 dill==0.3.6
@@ -94,6 +116,8 @@ distro==1.8.0
     # via
     #   dvc
     #   iterative-telemetry
+dnspython==2.3.0
+    # via email-validator
 docker-pycreds==0.4.0
     # via wandb
 dpath==2.1.4
@@ -120,6 +144,12 @@ dvc-studio-client==0.6.0
     # via dvc
 dvc-task==0.2.0
     # via dvc
+email-validator==1.3.1
+    # via fastapi
+fastapi[all]==0.88.0
+    # via
+    #   lightning
+    #   lightning-cloud
 filelock==3.9.0
     # via
     #   huggingface-hub
@@ -140,6 +170,8 @@ fsspec[http]==2023.3.0
     #   datasets
     #   dvc-http
     #   dvc-objects
+    #   lightning
+    #   pytorch-lightning
     #   scmrepo
     #   sshfs
 funcy==1.18
@@ -157,6 +189,16 @@ gitpython==3.1.31
     #   wandb
 grandalf==0.8
     # via dvc
+h11==0.14.0
+    # via
+    #   httpcore
+    #   uvicorn
+httpcore==0.16.3
+    # via httpx
+httptools==0.5.0
+    # via uvicorn
+httpx==0.23.3
+    # via fastapi
 huggingface-hub==0.12.1
     # via
     #   datasets
@@ -166,10 +208,23 @@ hydra-core==1.3.2
     # via dvc
 idna==3.4
     # via
+    #   anyio
+    #   email-validator
     #   requests
+    #   rfc3986
     #   yarl
+inquirer==3.1.3
+    # via lightning
 iterative-telemetry==0.0.7
     # via dvc
+itsdangerous==2.1.2
+    # via
+    #   fastapi
+    #   starsessions
+jinja2==3.1.2
+    # via
+    #   fastapi
+    #   lightning
 joblib==1.2.0
     # via scikit-learn
 kiwisolver==1.4.4
@@ -178,6 +233,16 @@ kombu==5.2.4
     # via
     #   celery
     #   dvc-task
+lightning==2.0.0
+    # via vqa (pyproject.toml)
+lightning-cloud==0.5.31
+    # via lightning
+lightning-utilities==0.8.0
+    # via
+    #   lightning
+    #   pytorch-lightning
+markupsafe==2.1.2
+    # via jinja2
 matplotlib==3.7.1
     # via vqa (pyproject.toml)
 multidict==6.0.4
@@ -194,11 +259,14 @@ numpy==1.24.2
     # via
     #   contourpy
     #   datasets
+    #   lightning
     #   matplotlib
     #   pandas
     #   pyarrow
+    #   pytorch-lightning
     #   scikit-learn
     #   scipy
+    #   torchmetrics
     #   torchvision
     #   transformers
 nvidia-cublas-cu11==11.10.3.66
@@ -213,15 +281,23 @@ nvidia-cudnn-cu11==8.5.0.96
     # via torch
 omegaconf==2.3.0
     # via hydra-core
+ordered-set==4.1.0
+    # via deepdiff
 orjson==3.8.7
-    # via sqltrie
+    # via
+    #   fastapi
+    #   sqltrie
 packaging==23.0
     # via
     #   datasets
     #   dvc
     #   huggingface-hub
     #   hydra-core
+    #   lightning
+    #   lightning-utilities
     #   matplotlib
+    #   pytorch-lightning
+    #   torchmetrics
     #   transformers
 pandas==1.5.3
     # via datasets
@@ -239,17 +315,22 @@ platformdirs==3.1.1
     # via dvc
 prompt-toolkit==3.0.38
     # via click-repl
-protobuf==4.22.0
+protobuf==3.20.3
     # via wandb
 psutil==5.9.4
     # via
     #   dvc
     #   flufl-lock
+    #   lightning
     #   wandb
 pyarrow==11.0.0
     # via datasets
 pycparser==2.21
     # via cffi
+pydantic==1.10.6
+    # via
+    #   fastapi
+    #   lightning
 pydot==1.4.2
     # via dvc
 pygit2==1.11.1
@@ -262,6 +343,8 @@ pygtrie==2.5.0
     #   dvc-data
     #   scmrepo
     #   sqltrie
+pyjwt==2.6.0
+    # via lightning-cloud
 pyparsing==3.0.9
     # via
     #   dvc
@@ -270,22 +353,40 @@ pyparsing==3.0.9
     #   pydot
 python-dateutil==2.8.2
     # via
+    #   arrow
+    #   croniter
+    #   dateutils
     #   matplotlib
     #   pandas
 python-dotenv==1.0.0
-    # via vqa (pyproject.toml)
+    # via
+    #   uvicorn
+    #   vqa (pyproject.toml)
+python-editor==1.0.4
+    # via inquirer
+python-multipart==0.0.6
+    # via fastapi
+pytorch-lightning==2.0.0
+    # via lightning
 pytz==2022.7.1
     # via
     #   celery
+    #   dateutils
     #   pandas
 pyyaml==6.0
     # via
     #   datasets
+    #   fastapi
     #   huggingface-hub
+    #   lightning
     #   omegaconf
+    #   pytorch-lightning
     #   timm
     #   transformers
+    #   uvicorn
     #   wandb
+readchar==4.0.5
+    # via inquirer
 regex==2022.10.31
     # via transformers
 requests==2.28.2
@@ -296,15 +397,21 @@ requests==2.28.2
     #   fsspec
     #   huggingface-hub
     #   iterative-telemetry
+    #   lightning
+    #   lightning-cloud
     #   responses
     #   torchvision
     #   transformers
     #   wandb
 responses==0.18.0
     # via datasets
+rfc3986[idna2008]==1.5.0
+    # via httpx
 rich==12.6.0
     # via
     #   dvc
+    #   lightning
+    #   lightning-cloud
     #   typer
 ruamel-yaml==0.17.21
     # via dvc
@@ -333,17 +440,33 @@ shtab==1.5.8
     # via dvc
 six==1.16.0
     # via
+    #   blessed
     #   click-repl
     #   configobj
     #   docker-pycreds
     #   flatten-dict
+    #   lightning-cloud
     #   python-dateutil
 smmap==5.0.0
     # via gitdb
+sniffio==1.3.0
+    # via
+    #   anyio
+    #   httpcore
+    #   httpx
+soupsieve==2.4
+    # via beautifulsoup4
 sqltrie==0.3.0
     # via dvc-data
 sshfs[bcrypt]==2023.1.0
     # via dvc-ssh
+starlette==0.22.0
+    # via
+    #   fastapi
+    #   lightning
+    #   starsessions
+starsessions==1.3.0
+    # via lightning
 tabulate==0.9.0
     # via dvc
 threadpoolctl==3.1.0
@@ -356,9 +479,16 @@ tomlkit==0.11.6
     # via dvc
 torch==1.13.1
     # via
+    #   lightning
+    #   pytorch-lightning
     #   timm
+    #   torchmetrics
     #   torchvision
     #   vqa (pyproject.toml)
+torchmetrics==0.11.4
+    # via
+    #   lightning
+    #   pytorch-lightning
 torchvision==0.14.1
     # via
     #   timm
@@ -369,7 +499,11 @@ tqdm==4.65.0
     #   dvc
     #   dvc-objects
     #   huggingface-hub
+    #   lightning
+    #   pytorch-lightning
     #   transformers
+traitlets==5.9.0
+    # via lightning
 transformers==4.26.1
     # via vqa (pyproject.toml)
 typer[all]==0.7.0
@@ -379,14 +513,28 @@ typing-extensions==4.5.0
     #   asyncssh
     #   dvc-objects
     #   huggingface-hub
+    #   lightning
+    #   lightning-utilities
+    #   pydantic
+    #   pytorch-lightning
     #   torch
     #   torchvision
+ujson==5.7.0
+    # via fastapi
 urllib3==1.26.14
     # via
     #   dulwich
+    #   lightning
+    #   lightning-cloud
     #   requests
     #   responses
     #   sentry-sdk
+uvicorn[standard]==0.21.1
+    # via
+    #   fastapi
+    #   lightning
+uvloop==0.17.0
+    # via uvicorn
 vine==5.0.0
     # via
     #   amqp
@@ -398,8 +546,20 @@ voluptuous==0.13.1
     #   dvc-studio-client
 wandb==0.13.10
     # via vqa (pyproject.toml)
+watchfiles==0.18.1
+    # via uvicorn
 wcwidth==0.2.6
-    # via prompt-toolkit
+    # via
+    #   blessed
+    #   prompt-toolkit
+websocket-client==1.5.1
+    # via
+    #   lightning
+    #   lightning-cloud
+websockets==10.4
+    # via
+    #   lightning
+    #   uvicorn
 wheel==0.38.4
     # via
     #   nvidia-cublas-cu11

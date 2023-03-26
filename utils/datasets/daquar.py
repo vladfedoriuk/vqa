@@ -1,7 +1,7 @@
 """The module contains the code to load the DAQUAR dataset."""
 import datasets
 
-from config import PROCESSED_DAQUAR_PATH
+from config.datasets.daquar import PROCESSED_DAQUAR_DATA_FILES, PROCESSED_DAQUAR_PATH
 
 
 def load_daquar() -> datasets.Dataset:
@@ -10,10 +10,11 @@ def load_daquar() -> datasets.Dataset:
 
     :return: The DAQUAR dataset.
     """
+    train_data_file, eval_data_file = PROCESSED_DAQUAR_DATA_FILES
     return datasets.load_dataset(
         "csv",
         data_files={
-            "train": str(PROCESSED_DAQUAR_PATH / "daquar_train_flattened.csv"),
-            "validation": str(PROCESSED_DAQUAR_PATH / "daquar_eval_flattened.csv"),
+            "train": str(PROCESSED_DAQUAR_PATH / train_data_file),
+            "validation": str(PROCESSED_DAQUAR_PATH / eval_data_file),
         },
     )

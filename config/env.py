@@ -23,3 +23,6 @@ WANDB_ENTITY: Final[str] = os.getenv("WANDB_ENTITY", "")
 HF_DATASETS_CACHE: Final[Path] = Path(
     os.getenv("HF_DATASETS_CACHE", DATASETS_PATH / "huggingface_cache")
 )
+
+# A project name on the Weights and Biases
+WANDB_PROJECT: Final[str] = os.getenv("WANDB_PROJECT", "vqa")

@@ -23,6 +23,7 @@ from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 from utils.torch import ensure_reproducibility, freeze_model_parameters
 
 
+# TODO: Maybe some registries for the backbones?
 def experiment(
     image_encoder_backbone: str = "google/vit-base-patch16-224-in21k",
     text_encoder_backbone: str = "bert-base-uncased",
@@ -65,6 +66,7 @@ def experiment(
     freeze_model_parameters(image_encoder)
 
     # Create a trainer.
+    # TODO: Try deterministic=True.
     trainer = pl.Trainer(
         accelerator="gpu",
         logger=logger,

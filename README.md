@@ -86,3 +86,8 @@ squeue -u <username>
 ```shell
 rsync -vrzhe ssh vqa/ [username]@[server]:./vqa
 ```
+
+- One can use a helper script to automatically submit an experiment to the cluster:
+```shell
+./submit_experiment.sh
+```

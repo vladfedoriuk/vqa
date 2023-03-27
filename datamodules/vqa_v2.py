@@ -11,6 +11,7 @@ from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 from utils.phase import Phase
 
 
+# TODO: Make this data module dataset-agnostic.
 class VqaV2SampleDataModule(pl.LightningDataModule):
     """The VQA V2 sample data module."""
 

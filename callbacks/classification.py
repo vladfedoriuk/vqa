@@ -72,6 +72,8 @@ class LogClassificationPredictionSamplesCallback(Callback):
         :param batch_idx: The batch index.
         :param dataloader_idx: The dataloader index.
         """
+        # TODO: Use some random sampling instead of the first samples
+        # TODO: Display the images in a table
         batch = convert_batch_to_list_of_dicts(batch)
         if batch_idx == 0:
             images = [data_point["image"] for data_point in batch[: self.num_samples]]

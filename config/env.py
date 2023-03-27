@@ -6,6 +6,7 @@ from typing import Final
 
 from dotenv import load_dotenv
 
+# TODO: Move to the pydantic settings.
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 # A directory where the datasets can be found.

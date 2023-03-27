@@ -81,6 +81,7 @@ def load_vqa_v2_sample_answers_space() -> pd.DataFrame:
     )
 
 
+# TODO: Maybe some registry for the answer spaces?
 class VqaV2SampleAnswerSpace(AnswerSpace):
     """
     The VQA V2 sample answers space.
@@ -95,7 +96,20 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
 
         It loads the answers space from the file.
         """
-        self._answers_space = load_vqa_v2_sample_answers_space()
+        self._answers_space = None
+
+    @property
+    def answers_space(self) -> pd.DataFrame:
+        """
+        Get the answers space.
+
+        Lazy loads the answers space from the file.
+
+        :return: The answers space.
+        """
+        if self._answers_space is None:
+            self._answers_space = load_vqa_v2_sample_answers_space()
+        return self._answers_space
 
     def __len__(self):
         """
@@ -103,7 +117,7 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
 
         :return: The number of answers in the answers space.
         """
-        return len(self._answers_space)
+        return len(self.answers_space)
 
     def answer_id_to_answer(self, answer_id):
         """
@@ -112,7 +126,7 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         :param answer_id: The answer id.
         :return: The answer.
         """
-        return self._answers_space["answer"].iloc[answer_id]
+        return self.answers_space["answer"].iloc[answer_id]
 
     def answer_to_answer_id(self, answer):
         """
@@ -121,4 +135,4 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         :param answer: The answer.
         :return: The answer id.
         """
-        return self._answers_space[self._answers_space["answer"] == answer].index[0]
+        return self.answers_space[self.answers_space["answer"] == answer].index[0]

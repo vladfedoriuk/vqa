@@ -97,6 +97,8 @@ class MultiModalClassificationModule(pl.LightningModule):
         embeddings = self._get_embeddings(batch)
         logits = self.classifier(embeddings["image_emb"], embeddings["text_emb"])
         loss = self.loss(logits, batch["answer_label"])
+        # TODO: Log as a dict
+        # TODO: Confusion matrix
         self.log("val_loss", loss)
         self.val_accuracy(logits, batch["answer_label"])
         self.log("val_acc", self.val_accuracy)

@@ -25,6 +25,28 @@ def convert_batch_to_dict_of_features(
         return {key: [sample[key] for sample in batch] for key in batch[0].keys()}
 
 
+def convert_batch_to_list_of_dicts(batch: dict[str, list[Any]]) -> list[dict[str, Any]]:
+    """
+    Convert the batch to a list of dicts.
+
+    If the batch is a dict, then it is converted to a list of dicts
+    with the keys having the values for each sample in the batch.
+
+    :param batch: The batch.
+    :return: The list.
+    """
+    if isinstance(batch, list):
+        return batch
+    elif not batch:
+        return []
+    else:
+        some_value = next(iter(batch.values()))
+        return [
+            {key: value[i] for key, value in batch.items()}
+            for i in range(len(some_value))
+        ]
+
+
 class AnswerSpace(Protocol):
     """
     The answer space protocol.

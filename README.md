@@ -79,3 +79,10 @@ squeue -u <username> -n jupyter
 ```shell
 squeue -u <username>
 ```
+
+### Synchronize the local directory with the remote one
+
+- To synchronize the local directory with the remote one, one can use a command like this:
+```shell
+rsync -vrzhe ssh vqa/ [username]@[server]:./vqa
+```

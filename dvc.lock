@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   process_daquar:
-    cmd: python pipelines/process_daquar.py
+    cmd: PYTHONPATH=. python pipelines/process_daquar.py
     deps:
     - path: data/raw/daquar/data_eval.csv
       md5: 0d791523aa1ef9be020ea68a30e4a1dc
@@ -10,8 +10,8 @@ stages:
       md5: a8bdadf3dc81a0b92b7d8f35f81b5edf
       size: 370864
     - path: pipelines/process_daquar.py
-      md5: c76c692a9bdee3fc425b478438f1da3f
-      size: 2704
+      md5: 936063439ad9c099fc2bd22b95290073
+      size: 3234
     outs:
     - path: data/processed/daquar/daquar_eval_flattened.csv
       md5: 3ef80b708d05da1736d2adc8c7572382
@@ -33,9 +33,9 @@ stages:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
     deps:
     - path: pipelines/process_vqa_v2_sample.py
-      md5: cdc09b4c05f2c58c15c1da1fdf6f77cf
-      size: 2073
+      md5: 66f61bc253bb67ff427f465e0a2a1f09
+      size: 2719
     outs:
     - path: data/processed/vqa_v2/vqa_v2_sample_answers_space.json
-      md5: 02e59467520ca62e3bcf5e3d90c4f71d
-      size: 183262
+      md5: 0f48bae58dad0839f6fb6d826f751563
+      size: 183323

@@ -72,6 +72,7 @@ def experiment(
         num_nodes=1,
         strategy="ddp",
         max_epochs=10,
+        log_every_n_steps=4,
         callbacks=[
             LogClassificationPredictionSamplesCallback(
                 logger=logger,

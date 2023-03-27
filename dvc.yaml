@@ -1,6 +1,6 @@
 stages:
   process_daquar:
-    cmd: python pipelines/process_daquar.py
+    cmd: PYTHONPATH=. python pipelines/process_daquar.py
     deps:
     - data/raw/daquar/data_eval.csv
     - data/raw/daquar/data_train.csv

@@ -11,7 +11,6 @@ def image_augmentation_for_vqa_v2(image: PIL.Image.Image):
     - Random rotation
     - Random horizontal flip
     - Random vertical flip
-    - Random crop
     - Random color jitter
 
     :param image: The image to augment.
@@ -24,7 +23,6 @@ def image_augmentation_for_vqa_v2(image: PIL.Image.Image):
             T.RandomRotation(degrees=30),
             T.RandomHorizontalFlip(p=0.5),
             T.RandomVerticalFlip(p=0.5),
-            T.RandomCrop(size=224),
             T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
         ]
     )(image)

@@ -3,9 +3,9 @@ from typing import Any
 
 import torch
 from lightning import Callback
-from pytorch_lightning.loggers import WandbLogger
+from lightning.pytorch.loggers.wandb import WandbLogger
 
-from utils.datasets import AnswerSpace
+from utils.datasets import AnswerSpace, convert_batch_to_list_of_dicts
 
 
 class LogClassificationPredictionSamplesCallback(Callback):
@@ -53,7 +53,6 @@ class LogClassificationPredictionSamplesCallback(Callback):
                     {
                         answer if isinstance(answer, str) else answer["answer"]
                         for answer in data_point["answers"]
-                        if answer["answer"] != data_point["multiple_choice_answer"]
                     }
                 ),
                 f"Model prediction: {predicted_answer}",
@@ -61,15 +60,23 @@ class LogClassificationPredictionSamplesCallback(Callback):
         )
 
     def on_validation_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx
+        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0
     ):
-        """Call when the validation batch ends."""
+        """
+        Call when the validation batch ends.
+
+        :param trainer: The trainer.
+        :param pl_module: The Lightning module.
+        :param outputs: The outputs.
+        :param batch: The batch.
+        :param batch_idx: The batch index.
+        :param dataloader_idx: The dataloader index.
+        """
+        batch = convert_batch_to_list_of_dicts(batch)
         if batch_idx == 0:
-            images = [img["image"] for img in batch[: self.num_samples]]
+            images = [data_point["image"] for data_point in batch[: self.num_samples]]
             captions = [
                 self.get_caption(data_point, output_logits)
-                for data_point, output_logits in zip(
-                    batch[: self.num_samples], outputs["logits"][: self.num_samples]
-                )
-            ]
+                for data_point, output_logits in zip(batch, outputs["logits"])
+            ][: self.num_samples]
             self.logger.log_image(key="sample_images", images=images, caption=captions)

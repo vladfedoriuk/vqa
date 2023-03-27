@@ -53,11 +53,14 @@ class MultiModalClassificationModule(pl.LightningModule):
         """
         image_emb = self.image_encoder(pixel_values=batch["pixel_values"])
         text_emb = self.text_encoder(
-            input_ids=torch.tensor(batch["input_ids"]),
-            token_type_ids=torch.tensor(batch["token_type_ids"]),
-            attention_mask=torch.tensor(batch["attention_mask"]),
+            input_ids=batch["input_ids"],
+            token_type_ids=batch["token_type_ids"],
+            attention_mask=batch["attention_mask"],
         )
-        return {"image_emb": image_emb, "text_emb": text_emb}
+        return {
+            "image_emb": image_emb.pooler_output,
+            "text_emb": text_emb.pooler_output,
+        }
 
     def training_step(self, batch, batch_idx):
         """
@@ -81,7 +84,7 @@ class MultiModalClassificationModule(pl.LightningModule):
 
         :return: The optimizer.
         """
-        return torch.optim.Adam(self.parameters(), lr=1e-4)
+        return torch.optim.Adam(self.parameters(), lr=5e-3, weight_decay=1e-4)
 
     def validation_step(self, batch, batch_idx):
         """

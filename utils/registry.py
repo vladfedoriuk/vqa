@@ -92,7 +92,7 @@ class Registry(Generic[KeyType, ValueType]):
 
 
 @contextlib.contextmanager
-def with_registries():
+def initialize_registries():
     """Context manager to initialize the registries."""
     from collators import MultiModalCollatorRegistry  # noqa: F401
     from models.backbones import BackbonesRegistry  # noqa: F401

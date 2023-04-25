@@ -20,14 +20,11 @@ from loggers.wandb import get_lightning_logger
 from models.backbones import registry as backbones_config_registry
 from models.fusion.simple_cat import SimpleCatFusionModel
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
-from utils.registry import with_registries
+from utils.registry import initialize_registries
 from utils.torch import ensure_reproducibility, freeze_model_parameters
 
-# Initialize the registries.
 
-
-# TODO: Maybe some registries for the backbones?
-@with_registries()
+@initialize_registries()
 def experiment(
     image_encoder_backbone: str = "google/vit-base-patch16-224-in21k",
     text_encoder_backbone: str = "bert-base-uncased",

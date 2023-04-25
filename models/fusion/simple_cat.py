@@ -15,22 +15,29 @@ from torch import nn
 class SimpleCatFusionModel(nn.Module):
     """Simple concatenation fusion model."""
 
-    def __init__(self, answers_num: int):
+    def __init__(
+        self,
+        answers_num: int,
+        image_representation_size: int,
+        text_representation_size: int,
+    ):
         """
         Initialize the model.
 
         :param answers_num: The number of answers.
+        :param image_representation_size: The image representation size.
+        :param text_representation_size: The text representation size.
         """
         super().__init__()
         self.answers_num = answers_num
         self.vision_projection = nn.Sequential(
-            nn.Linear(768, 768),
+            nn.Linear(image_representation_size, 768),
             nn.ReLU(),
             nn.LayerNorm(768),
             nn.Dropout(0.3),
         )
         self.text_projection = nn.Sequential(
-            nn.Linear(768, 768),
+            nn.Linear(text_representation_size, 768),
             nn.ReLU(),
             nn.LayerNorm(768),
             nn.Dropout(0.3),

@@ -89,5 +89,15 @@ rsync -vrzhe ssh vqa/ [username]@[server]:./vqa
 
 - One can use a helper script to automatically submit an experiment to the cluster:
 ```shell
-./submit_experiment.sh
+./submit.sh [experiment|jupyter]
+```
+
+### DVC
+
+- DVC is used to persist the data and models, track data pipelines, and reproduce experiments.
+- The remote storage is configured to be an [SSH Server](https://dvc.org/doc/user-guide/data-management/remote-storage/ssh)
+- There are several [pipelines](https://dvc.org/doc/start/data-management/data-pipelines) for data preprocessing.
+- To reproduce them, one can use a command like this:
+```shell
+dvc repro
 ```

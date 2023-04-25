@@ -1,4 +1,5 @@
 """Registry."""
+import contextlib
 from collections.abc import Callable, MutableMapping
 from enum import Enum
 from typing import ClassVar, Generic, TypeVar
@@ -32,12 +33,24 @@ class Registry(Generic[KeyType, ValueType]):
     """
 
     __instance = None
+    __registries: ClassVar[dict] = {}
 
     def __new__(cls, *args, **kwargs):
         """Singleton pattern."""
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
         return cls.__instance
+
+    def __init_subclass__(cls, **kwargs):
+        """Singleton pattern."""
+        super().__init_subclass__(**kwargs)
+        cls.__registries[cls] = cls()
+
+    @classmethod
+    def initialize(cls) -> None:
+        """Initialize the registries."""
+        for registry in cls.__registries.values():
+            registry.initialize()
 
     _REGISTRY_TYPE = MutableMapping[KeyType, ValueType]
     internal_registry: ClassVar[_REGISTRY_TYPE] = {}
@@ -76,3 +89,13 @@ class Registry(Generic[KeyType, ValueType]):
         :return: The value or the default value if the key is not in the registry.
         """
         return self.internal_registry.get(key, default)
+
+
+@contextlib.contextmanager
+def with_registries():
+    """Context manager to initialize the registries."""
+    from collators import MultiModalCollatorRegistry  # noqa: F401
+    from models.backbones import BackbonesRegistry  # noqa: F401
+
+    Registry.initialize()
+    yield

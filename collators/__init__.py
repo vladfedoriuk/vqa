@@ -57,10 +57,15 @@ class AvailableCollators(RegistryKey):
     VQA_V2_SAMPLE = "vqa_v2_sample"
 
 
-class MultiModalCollatorRegistry(Registry[AvailableCollators, MultiModalCollator]):
+class MultiModalCollatorRegistry(
+    Registry[AvailableCollators, type[MultiModalCollator]]
+):
     """The multi-modal collator registry."""
 
-    pass
+    @classmethod
+    def initialize(cls) -> None:
+        """Initialize the registry."""
+        from collators import vqa_v2  # noqa: F401
 
 
 registry: Final[Registry] = MultiModalCollatorRegistry()

@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AutoImageProcessor, AutoTokenizer
 
-from collators import AvailableCollators, MultiModalCollator, registry
+from collators import AvailableCollators, ClassificationCollator, registry
 from utils.datasets import convert_batch_to_dict_of_features
 from utils.datasets.vqa_v2 import (
     VqaV2SampleAnswerSpace,
@@ -22,7 +22,7 @@ from utils.types import TransformsType
 
 @registry.register(AvailableCollators.VQA_V2_SAMPLE)
 @dataclasses.dataclass(frozen=True)
-class VqaV2SampleCollator(MultiModalCollator):
+class VqaV2SampleCollator(ClassificationCollator):
     """The VQA V2 collator."""
 
     #: The answer space.

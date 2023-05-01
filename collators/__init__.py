@@ -2,7 +2,8 @@
 import dataclasses
 from typing import Final
 
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
 from transforms.noop import noop
 from utils.datasets import AnswerSpace
@@ -14,11 +15,9 @@ from utils.types import SingleImageTransformsType, TransformsType
 class MultiModalCollator:
     """The multi-modal collator."""
 
-    tokenizer: AutoTokenizer
-    image_processor: AutoImageProcessor
-    image_transforms: SingleImageTransformsType = dataclasses.field(
-        default_factory=noop
-    )
+    tokenizer: PreTrainedTokenizer
+    image_processor: BaseImageProcessor
+    image_transforms: SingleImageTransformsType = dataclasses.field(default_factory=noop)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -30,8 +29,8 @@ class ClassificationCollator(MultiModalCollator):
     @classmethod
     def get_dataloaders(
         cls,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
         image_transforms: TransformsType,
         answer_space: AnswerSpace,
         batch_size: int = 64,
@@ -57,9 +56,7 @@ class AvailableCollators(RegistryKey):
     VQA_V2_SAMPLE = "vqa_v2_sample"
 
 
-class MultiModalCollatorRegistry(
-    Registry[AvailableCollators, type[MultiModalCollator]]
-):
+class MultiModalCollatorRegistry(Registry[AvailableCollators, type[MultiModalCollator]]):
     """The multi-modal collator registry."""
 
     @classmethod

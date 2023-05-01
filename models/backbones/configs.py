@@ -1,12 +1,13 @@
 """The backbone configurations."""
 import dataclasses
-from typing import cast
 
 import torch
 from transformers import (
     AutoImageProcessor,
     AutoModel,
     AutoTokenizer,
+    BatchEncoding,
+    BatchFeature,
     BeitModel,
     DeiTModel,
 )
@@ -15,9 +16,9 @@ from models.backbones import (
     AvailableBackbones,
     BackboneConfig,
     ImageEncoderMixin,
+    TextEncoderMixin,
     registry,
 )
-from utils.types import ImageType, is_callable
 
 
 @registry.register(AvailableBackbones.DINO)
@@ -49,9 +50,7 @@ class BEITConfig(ImageEncoderMixin, BackboneConfig):
 
     def get_image_processor(self):
         """Get the image processor."""
-        return AutoImageProcessor.from_pretrained(
-            "microsoft/beit-base-patch16-224-pt22k"
-        )
+        return AutoImageProcessor.from_pretrained("microsoft/beit-base-patch16-224-pt22k")
 
     def get_image_representation_size(self) -> int:
         """Get the image representation size."""
@@ -69,9 +68,7 @@ class DEITConfig(ImageEncoderMixin, BackboneConfig):
 
     def get_image_processor(self):
         """Get the image processor."""
-        return AutoImageProcessor.from_pretrained(
-            "facebook/deit-base-distilled-patch16-224"
-        )
+        return AutoImageProcessor.from_pretrained("facebook/deit-base-distilled-patch16-224")
 
     def get_image_representation_size(self) -> int:
         """Get the image representation size."""
@@ -80,7 +77,7 @@ class DEITConfig(ImageEncoderMixin, BackboneConfig):
 
 @registry.register(AvailableBackbones.RESNET)
 @dataclasses.dataclass(frozen=True)
-class RESNETConfig(BackboneConfig):
+class RESNETConfig(ImageEncoderMixin, BackboneConfig):
     """The ResNet backbone."""
 
     def get_model(self):
@@ -95,14 +92,11 @@ class RESNETConfig(BackboneConfig):
         """Get the image representation size."""
         return 2048
 
-    def get_image_representation(
-        self, model: torch.nn.Module, image: ImageType
+    def get_image_representation_from_preprocessed(
+        self, model: torch.nn.Module, processor_output: BatchFeature
     ) -> torch.Tensor:
         """Get the image representation."""
-        image_processor = self.get_image_processor()
-        assert is_callable(image_processor), "The image processor must be callable."
-        image = image_processor(image, return_tensors="pt")
-        return model(image["pixel_values"]).pooler_output.squeeze().expand(1, -1)
+        return model(processor_output["pixel_values"]).pooler_output.squeeze().expand(1, -1)
 
 
 @registry.register(AvailableBackbones.VIT)
@@ -125,7 +119,7 @@ class VITConfig(ImageEncoderMixin, BackboneConfig):
 
 @registry.register(AvailableBackbones.BERT)
 @dataclasses.dataclass(frozen=True)
-class BERTConfig(BackboneConfig):
+class BERTConfig(TextEncoderMixin, BackboneConfig):
     """The BERT model is a transformer-based model."""
 
     def get_model(self):
@@ -141,18 +135,16 @@ class BERTConfig(BackboneConfig):
         return 768
 
 
-class TextEncoderLastHiddenStateMixin:
+class TextEncoderLastHiddenStateMixin(TextEncoderMixin):
     """The text encoder last hidden state mixin."""
 
-    def get_text_representation(
-        self, model: torch.nn.Module, text: str
+    @staticmethod
+    def get_text_representation_from_tokenized(
+        model: torch.nn.Module,
+        tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
-        instance = cast(BackboneConfig, self)
-        tokenizer = instance.get_tokenizer()
-        assert is_callable(tokenizer), "The tokenizer must be callable."
-        text = tokenizer(text, return_tensors="pt")
-        return model(**text).last_hidden_state[:, 0, :].squeeze().expand(1, -1)
+        return model(**tokenizer_output).last_hidden_state[:, 0, :]
 
 
 @registry.register(AvailableBackbones.ROBERTA)
@@ -189,6 +181,18 @@ class DISTILBERTConfig(TextEncoderLastHiddenStateMixin, BackboneConfig):
     def get_text_representation_size(self) -> int:
         """Get the text representation size."""
         return 768
+
+    @staticmethod
+    def get_text_representation_from_tokenized(
+        model: torch.nn.Module,
+        tokenizer_output: BatchEncoding,
+    ) -> torch.Tensor:
+        """Get the text representation."""
+        text_encoder_kwargs = {
+            "input_ids": tokenizer_output["input_ids"],
+            "attention_mask": tokenizer_output["attention_mask"],
+        }
+        return model(**text_encoder_kwargs).last_hidden_state[:, 0, :]
 
 
 @registry.register(AvailableBackbones.ALBERT)

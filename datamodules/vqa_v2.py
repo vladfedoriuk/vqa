@@ -2,7 +2,8 @@
 from collections import defaultdict
 
 import lightning.pytorch as pl
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
 from collators.vqa_v2 import VqaV2SampleCollator
 from transforms.noop import noop
@@ -17,8 +18,8 @@ class VqaV2SampleDataModule(pl.LightningDataModule):
 
     def __init__(
         self,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
         answer_space: VqaV2SampleAnswerSpace,
         batch_size: int = 64,
     ):

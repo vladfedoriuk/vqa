@@ -1,11 +1,12 @@
 """The backbone models registry."""
-from typing import Final, Protocol, cast
+from typing import Final, Protocol
 
 import torch
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import BatchEncoding, PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor, BatchFeature
 
 from utils.registry import Registry, RegistryKey
-from utils.types import ImageType, is_callable
+from utils.types import ImageType
 
 
 class AvailableBackbones(RegistryKey):
@@ -32,30 +33,52 @@ class BackboneConfig(Protocol):
         """Get the model."""
         raise NotImplementedError
 
-    def get_image_processor(self) -> AutoImageProcessor:
+    def get_image_processor(self) -> BaseImageProcessor:
         """Get the image processor."""
         ...
 
-    def get_tokenizer(self) -> AutoTokenizer:
-        """Get the tokenizer."""
+    def get_processed_image(self, processor: BaseImageProcessor, image: ImageType) -> BatchFeature:
+        """Get the image features from processor."""
+        ...
+
+    def get_image_representation(
+        self, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
+    ) -> torch.Tensor:
+        """Get the image representation."""
+        ...
+
+    def get_image_representation_from_preprocessed(
+        self, model: torch.nn.Module, processor_output: BatchFeature
+    ) -> torch.Tensor:
+        """Get the image representation."""
         ...
 
     def get_image_representation_size(self) -> int:
         """Get the image representation size."""
         ...
 
+    def get_tokenizer(self) -> PreTrainedTokenizer:
+        """Get the tokenizer."""
+        ...
+
+    def get_tokenized_text(self, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+        """Get the tokenized text."""
+        ...
+
     def get_text_representation_size(self) -> int:
         """Get the text representation size."""
         ...
 
-    def get_image_representation(
-        self, model: torch.nn.Module, image: ImageType
+    def get_text_representation(
+        self, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str
     ) -> torch.Tensor:
-        """Get the image representation."""
+        """Get the text representation."""
         ...
 
-    def get_text_representation(
-        self, model: torch.nn.Module, text: str
+    def get_text_representation_from_tokenized(
+        self,
+        model: torch.nn.Module,
+        tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
         ...
@@ -64,29 +87,59 @@ class BackboneConfig(Protocol):
 class ImageEncoderMixin:
     """The image encoder mixin."""
 
-    def get_image_representation(
-        self, model: torch.nn.Module, image: ImageType
+    @staticmethod
+    def get_processed_image(processor: BaseImageProcessor, image: ImageType) -> BatchFeature:
+        """Get the image features from processor."""
+        return processor(image, return_tensors="pt")
+
+    @staticmethod
+    def get_image_representation_from_preprocessed(
+        model: torch.nn.Module, processor_output: BatchFeature
     ) -> torch.Tensor:
         """Get the image representation."""
-        instance = cast(BackboneConfig, self)
-        image_processor = instance.get_image_processor()
-        assert is_callable(image_processor), "The image processor must be callable."
-        image = image_processor(image, return_tensors="pt")
-        return model(image["pixel_values"]).pooler_output
+        return model(processor_output["pixel_values"]).pooler_output
+
+    def get_image_representation(
+        self, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
+    ) -> torch.Tensor:
+        """Get the image representation."""
+        return self.get_image_representation_from_preprocessed(
+            model=model,
+            processor_output=self.get_processed_image(processor=processor, image=image),
+        )
 
 
 class TextEncoderMixin:
     """The text encoder mixin."""
 
-    def get_text_representation(
-        self, model: torch.nn.Module, text: str
+    @staticmethod
+    def get_tokenized_text(tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+        """Get the tokenized text."""
+        return tokenizer(
+            text,
+            return_tensors="pt",
+            padding="max_length",
+            truncation=True,
+            return_token_type_ids=("token_type_ids" in tokenizer.model_input_names),
+            return_attention_mask=True,
+        )
+
+    @staticmethod
+    def get_text_representation_from_tokenized(
+        model: torch.nn.Module,
+        tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
-        instance = cast(BackboneConfig, self)
-        tokenizer = instance.get_tokenizer()
-        assert is_callable(tokenizer), "The tokenizer must be callable."
-        inputs = tokenizer(text, return_tensors="pt")
-        return model(**inputs).pooler_output
+        return model(**tokenizer_output).pooler_output
+
+    def get_text_representation(
+        self, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str
+    ) -> torch.Tensor:
+        """Get the text representation."""
+        return self.get_text_representation_from_tokenized(
+            model=model,
+            tokenizer_output=self.get_tokenized_text(tokenizer=tokenizer, text=text),
+        )
 
 
 class BackbonesRegistry(Registry[AvailableBackbones, type[BackboneConfig]]):

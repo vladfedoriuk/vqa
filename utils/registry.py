@@ -52,7 +52,7 @@ class Registry(Generic[KeyType, ValueType]):
         for registry in cls.__registries.values():
             registry.initialize()
 
-    _REGISTRY_TYPE = ClassVar[MutableMapping[KeyType, ValueType]]
+    _REGISTRY_TYPE = MutableMapping[KeyType, ValueType]
     internal_registry: ClassVar[_REGISTRY_TYPE] = {}
 
     def register(

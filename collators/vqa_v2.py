@@ -5,7 +5,8 @@ import operator
 
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
 from collators import AvailableCollators, ClassificationCollator, registry
 from utils.datasets import convert_batch_to_dict_of_features
@@ -26,9 +27,7 @@ class VqaV2SampleCollator(ClassificationCollator):
     """The VQA V2 collator."""
 
     #: The answer space.
-    answer_space: VqaV2SampleAnswerSpace = dataclasses.field(
-        default_factory=VqaV2SampleAnswerSpace
-    )
+    answer_space: VqaV2SampleAnswerSpace = dataclasses.field(default_factory=VqaV2SampleAnswerSpace)
 
     def get_answer_labels(self, batch):
         """
@@ -39,10 +38,7 @@ class VqaV2SampleCollator(ClassificationCollator):
         """
         return {
             "answer_label": torch.tensor(
-                [
-                    self.answer_space.answer_to_answer_id(answer)
-                    for answer in batch["multiple_choice_answer"]
-                ],
+                [self.answer_space.answer_to_answer_id(answer) for answer in batch["multiple_choice_answer"]],
                 dtype=torch.int64,
             ).squeeze()
         }
@@ -57,10 +53,7 @@ class VqaV2SampleCollator(ClassificationCollator):
         assert callable(self.image_processor), "The image processor is not callable."
         return squeeze_dict_of_tensors(
             self.image_processor(
-                images=[
-                    self.image_transforms(image.convert("RGB"))
-                    for image in batch["image"]
-                ],
+                images=[self.image_transforms(image.convert("RGB")) for image in batch["image"]],
                 return_tensors="pt",
             )
         )
@@ -72,14 +65,13 @@ class VqaV2SampleCollator(ClassificationCollator):
         :param batch: The batch.
         :return: The text features.
         """
-        assert callable(self.tokenizer), "The tokenizer is not callable."
         return squeeze_dict_of_tensors(
             self.tokenizer(
                 text=batch["question"],
                 padding="max_length",
                 truncation=True,
                 return_tensors="pt",
-                return_token_type_ids=True,
+                return_token_type_ids="token_type_ids" in self.tokenizer.model_input_names,
                 return_attention_mask=True,
             )
         )
@@ -104,8 +96,8 @@ class VqaV2SampleCollator(ClassificationCollator):
     @classmethod
     def get_dataloaders(
         cls,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
         image_transforms: TransformsType,
         answer_space: VqaV2SampleAnswerSpace,
         batch_size: int = 64,

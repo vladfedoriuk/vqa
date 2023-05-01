@@ -21,7 +21,11 @@ from models.backbones import registry as backbones_config_registry
 from models.fusion.simple_cat import SimpleCatFusionModel
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 from utils.registry import initialize_registries
-from utils.torch import ensure_reproducibility, freeze_model_parameters
+from utils.torch import (
+    backbone_name_to_kebab_case,
+    ensure_reproducibility,
+    freeze_model_parameters,
+)
 
 
 @initialize_registries()
@@ -45,34 +49,35 @@ def experiment(
     wandb.login()
 
     # Get the backbone configs.
-    image_encoder_backbone_config = backbones_config_registry.get_by_name(
-        image_encoder_backbone
-    )()
-    text_encoder_backbone_config = backbones_config_registry.get_by_name(
-        text_encoder_backbone
-    )()
+    image_encoder_backbone_config = backbones_config_registry.get_by_name(image_encoder_backbone)()
+    text_encoder_backbone_config = backbones_config_registry.get_by_name(text_encoder_backbone)()
+
+    # Get the backbone models and pre-processors
+    image_processor = image_encoder_backbone_config.get_image_processor()
+    image_encoder = image_encoder_backbone_config.get_model()
+    image_representation_size = image_encoder_backbone_config.get_image_representation_size()
+
+    text_processor = text_encoder_backbone_config.get_tokenizer()
+    text_encoder = text_encoder_backbone_config.get_model()
+    text_representation_size = text_encoder_backbone_config.get_text_representation_size()
+
+    # Freeze the backbone models.
+    freeze_model_parameters(image_encoder)
+    freeze_model_parameters(text_encoder)
 
     # Initialize the logger.
     logger = get_lightning_logger(
-        f"simple-cat-fusion-{image_encoder_backbone}-{text_encoder_backbone}"
+        "-".join(
+            [
+                "simple-cat-fusion",
+                f"{backbone_name_to_kebab_case(image_encoder_backbone)}",
+                f"{backbone_name_to_kebab_case(text_encoder_backbone)}",
+            ]
+        )
     )
 
     # Initialize the answer space.
     answer_space = VqaV2SampleAnswerSpace()
-
-    # Initialize the tokenizer and model for the text encoder.
-    tokenizer = text_encoder_backbone_config.get_tokenizer()
-    text_encoder = text_encoder_backbone_config.get_model()
-
-    # Freeze the text encoder parameters.
-    freeze_model_parameters(text_encoder)
-
-    # Initialize the image processor and model for the image encoder.
-    image_processor = image_encoder_backbone_config.get_image_processor()
-    image_encoder = image_encoder_backbone_config.get_model()
-
-    # Freeze the image encoder parameters.
-    freeze_model_parameters(image_encoder)
 
     # Create a trainer.
     # TODO: Try deterministic=True.
@@ -94,8 +99,8 @@ def experiment(
 
     # Create a data module.
     data_module = VqaV2SampleDataModule(
-        tokenizer=tokenizer,
         image_processor=image_processor,
+        tokenizer=text_processor,
         answer_space=answer_space,
         batch_size=64,
     )
@@ -104,15 +109,15 @@ def experiment(
     model = MultiModalClassificationModule(
         classifier=SimpleCatFusionModel(
             answers_num=len(answer_space),
-            image_representation_size=(
-                image_encoder_backbone_config.get_image_representation_size()
-            ),
-            text_representation_size=(
-                text_encoder_backbone_config.get_text_representation_size()
-            ),
+            image_representation_size=image_representation_size,
+            text_representation_size=text_representation_size,
         ),
-        text_encoder=text_encoder,
         image_encoder=image_encoder,
+        text_encoder=text_encoder,
+        image_processor=image_processor,
+        tokenizer=text_processor,
+        image_encoder_backbone_config=image_encoder_backbone_config,
+        text_encoder_backbone_config=text_encoder_backbone_config,
     )
 
     # Train, test, validate and predict.

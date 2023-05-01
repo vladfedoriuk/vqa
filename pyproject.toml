@@ -71,7 +71,7 @@ dev = [
 
 
 [tool.black]
-line-length = 88
+line-length = 120
 target_version = ['py310']
 include = '\.pyi?$'
 force-exclude = '''
@@ -104,4 +104,16 @@ known_first_party = "vqa"
 convention = "numpy"
 
 [tool.setuptools]
-py-modules = ["notebooks", "config"]
+py-modules = [
+    "callbacks",
+    "collators",
+    "config",
+    "datamodules",
+    "experiments",
+    "lightningmodules",
+    "loggers",
+    "models",
+    "pipelines",
+    "transforms",
+    "utils",
+]

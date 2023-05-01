@@ -3,13 +3,24 @@ import lightning.pytorch as pl
 import torch.optim
 import torchmetrics
 from torch import nn
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
+
+from models.backbones import BackboneConfig
 
 
 class MultiModalClassificationModule(pl.LightningModule):
     """Base class for classification modules."""
 
     def __init__(
-        self, classifier: nn.Module, image_encoder: nn.Module, text_encoder: nn.Module
+        self,
+        classifier: nn.Module,
+        image_encoder: nn.Module,
+        image_processor: BaseImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        text_encoder: nn.Module,
+        image_encoder_backbone_config: BackboneConfig,
+        text_encoder_backbone_config: BackboneConfig,
     ):
         """
         Initialize the module.
@@ -21,28 +32,24 @@ class MultiModalClassificationModule(pl.LightningModule):
             that takes two arguments: ``image_emb`` and ``text_emb``.
 
         :param classifier: The classifier.
-        :param image_encoder: The image encoder.
-        :param text_encoder: The text encoder.
         """
         super().__init__()
-        self.save_hyperparameters(
-            ignore=["classifier", "image_encoder", "text_encoder"]
-        )
+        self.save_hyperparameters(ignore=["classifier", "image_encoder", "text_encoder"])
 
         self.classifier = classifier
         self.image_encoder = image_encoder
         self.text_encoder = text_encoder
 
+        self.image_processor = image_processor
+        self.tokenizer = tokenizer
+
+        self.image_encoder_backbone_config = image_encoder_backbone_config
+        self.text_encoder_backbone_config = text_encoder_backbone_config
+
         self.loss = torch.nn.CrossEntropyLoss()
-        self.train_accuracy = torchmetrics.Accuracy(
-            task="multiclass", num_classes=self.classifier.answers_num
-        )
-        self.val_accuracy = torchmetrics.Accuracy(
-            task="multiclass", num_classes=self.classifier.answers_num
-        )
-        self.test_accuracy = torchmetrics.Accuracy(
-            task="multiclass", num_classes=self.classifier.answers_num
-        )
+        self.train_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classifier.answers_num)
+        self.val_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classifier.answers_num)
+        self.test_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classifier.answers_num)
 
     def _get_embeddings(self, batch):
         """
@@ -51,15 +58,19 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param batch: The batch.
         :return: The embeddings.
         """
-        image_emb = self.image_encoder(pixel_values=batch["pixel_values"])
-        text_emb = self.text_encoder(
-            input_ids=batch["input_ids"],
-            token_type_ids=batch["token_type_ids"],
-            attention_mask=batch["attention_mask"],
-        )
         return {
-            "image_emb": image_emb.pooler_output,
-            "text_emb": text_emb.pooler_output,
+            "image_emb": (
+                self.image_encoder_backbone_config.get_image_representation_from_preprocessed(
+                    model=self.image_encoder,
+                    processor_output=batch,
+                )
+            ),
+            "text_emb": (
+                self.text_encoder_backbone_config.get_text_representation_from_tokenized(
+                    model=self.text_encoder,
+                    tokenizer_output=batch,
+                )
+            ),
         }
 
     def training_step(self, batch, batch_idx):

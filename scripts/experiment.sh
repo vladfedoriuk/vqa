@@ -1,4 +1,5 @@
 #!/bin/bash
 
 python -m pip install -r requirements/base.txt .
-python experiments/fusion/simple_cat.py
+
+./scripts/simple_cat_grid.sh

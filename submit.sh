@@ -8,7 +8,7 @@ _REMOTE=z1158649@gw.gmum
 #  - data/ - the datasets
 #  - .dvc/ - the dvc cache
 #  - .git/ - the git repo
-rsync -vrzhe ssh ./ $_REMOTE:./vqa --exclude .dvc --exclude data --exclude .git --exclude-from .gitignore
+rsync -vrzhe ssh ./ $_REMOTE:./vqa --exclude .dvc --exclude data --exclude .git --exclude-from .gitignore --exclude-from .git/info/exclude
 
 # Run the experiment on the remote machine.
 if [[ $1 == "experiment" ]]; then

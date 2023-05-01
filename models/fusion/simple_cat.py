@@ -30,14 +30,16 @@ class SimpleCatFusionModel(nn.Module):
         """
         super().__init__()
         self.answers_num = answers_num
+        self.image_representation_size = image_representation_size
+        self.text_representation_size = text_representation_size
         self.vision_projection = nn.Sequential(
-            nn.Linear(image_representation_size, 768),
+            nn.Linear(self.image_representation_size, 768),
             nn.ReLU(),
             nn.LayerNorm(768),
             nn.Dropout(0.3),
         )
         self.text_projection = nn.Sequential(
-            nn.Linear(text_representation_size, 768),
+            nn.Linear(self.text_representation_size, 768),
             nn.ReLU(),
             nn.LayerNorm(768),
             nn.Dropout(0.3),

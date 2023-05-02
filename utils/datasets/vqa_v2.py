@@ -1,6 +1,6 @@
 """VQA V2 dataset."""
 from functools import lru_cache
-from typing import Literal
+from typing import ClassVar, Literal
 
 import datasets
 import pandas as pd
@@ -81,6 +81,7 @@ def load_vqa_v2_sample_answers_space() -> pd.DataFrame:
     )
 
 
+# TODO: Maybe some registry for the answer spaces?
 class VqaV2SampleAnswerSpace(AnswerSpace):
     """
     The VQA V2 sample answers space.
@@ -89,13 +90,54 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
     and vice versa.
     """
 
+    #: The fake answer to fill the missing IDs
+    _ANSWER_NOT_FOUND: ClassVar[str] = "<answer not found>"
+
     def __init__(self):
         """
         Initialize the VQA V2 sample answers space.
 
         It loads the answers space from the file.
         """
-        self._answers_space = load_vqa_v2_sample_answers_space()
+        self._answers_space = None
+
+    def clean_answer(self, answer: str) -> str:
+        """
+        Clean the answer.
+
+        :param answer: The answer to clean.
+        :return: The cleaned answer.
+        """
+        if not answer:
+            return self._ANSWER_NOT_FOUND
+        answers = answer.split(",")
+        answers = [answer.strip().lower() for answer in answers]
+        answers = [answer for answer in answers if answer != ""]
+        return answers[0] if answers else self._ANSWER_NOT_FOUND
+
+    def _add_fake_answer(self):
+        """
+        Add a fake answer to the answers space.
+
+        It is needed for the evaluation of the VQA V2 sample dataset.
+        """
+        self._answers_space = self.answers_space.append(
+            {"answer": self._ANSWER_NOT_FOUND},
+            ignore_index=True,
+        )
+
+    @property
+    def answers_space(self) -> pd.DataFrame:
+        """
+        Get the answers space.
+
+        Lazy loads the answers space from the file.
+
+        :return: The answers space.
+        """
+        if self._answers_space is None:
+            self._answers_space = load_vqa_v2_sample_answers_space()
+        return self._answers_space
 
     def __len__(self):
         """
@@ -103,7 +145,7 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
 
         :return: The number of answers in the answers space.
         """
-        return len(self._answers_space)
+        return len(self.answers_space)
 
     def answer_id_to_answer(self, answer_id):
         """
@@ -112,7 +154,10 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         :param answer_id: The answer id.
         :return: The answer.
         """
-        return self._answers_space["answer"].iloc[answer_id]
+        try:
+            return self.answers_space["answer"].iloc[answer_id]
+        except IndexError:
+            return self._ANSWER_NOT_FOUND
 
     def answer_to_answer_id(self, answer):
         """
@@ -121,4 +166,8 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         :param answer: The answer.
         :return: The answer id.
         """
-        return self._answers_space[self._answers_space["answer"] == answer].index[0]
+        answer = self.clean_answer(answer)
+        try:
+            return self.answers_space[self.answers_space["answer"] == answer].index[0]
+        except IndexError:
+            return self.answers_space[self.answers_space["answer"] == self._ANSWER_NOT_FOUND].index[0]

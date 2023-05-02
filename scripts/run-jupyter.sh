@@ -12,8 +12,9 @@
 #SBATCH --partition=student # rtx2080 (mini-servers), dgxteam (dgx1 for Team-Net), dgxmatinf (dgx2 for WMiI), dgx (dgx1 and dgx2)
 
 
-cd $HOME/vqa
+cd $HOME/vqa || exit
 export PYTHONPATH=.:$PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:$PWD
 
 
 singularity exec \

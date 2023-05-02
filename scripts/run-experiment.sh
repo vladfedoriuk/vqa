@@ -15,6 +15,7 @@
 
 cd $HOME/vqa || exit
 export PYTHONPATH=.:$PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:$PWD
 
 
 # debugging flags (optional)

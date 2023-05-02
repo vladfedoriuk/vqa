@@ -2,22 +2,27 @@
 from collections import defaultdict
 
 import lightning.pytorch as pl
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
 from collators.vqa_v2 import VqaV2SampleCollator
+from models.backbones import BackboneConfig
 from transforms.noop import noop
 from transforms.vqa_v2 import image_augmentation_for_vqa_v2
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 from utils.phase import Phase
 
 
+# TODO: Make this data module dataset-agnostic.
 class VqaV2SampleDataModule(pl.LightningDataModule):
     """The VQA V2 sample data module."""
 
     def __init__(
         self,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
+        image_encoder_config: type[BackboneConfig],
+        text_encoder_config: type[BackboneConfig],
         answer_space: VqaV2SampleAnswerSpace,
         batch_size: int = 64,
     ):
@@ -32,6 +37,8 @@ class VqaV2SampleDataModule(pl.LightningDataModule):
         super().__init__()
         self.tokenizer = tokenizer
         self.image_processor = image_processor
+        self.image_encoder_config = image_encoder_config
+        self.text_encoder_config = text_encoder_config
         self.train_transforms = {
             Phase.TRAIN: image_augmentation_for_vqa_v2,
         }
@@ -51,6 +58,8 @@ class VqaV2SampleDataModule(pl.LightningDataModule):
         self._dataloaders = VqaV2SampleCollator.get_dataloaders(
             tokenizer=self.tokenizer,
             image_processor=self.image_processor,
+            image_encoder_config=self.image_encoder_config,
+            text_encoder_config=self.text_encoder_config,
             image_transforms=image_transforms,
             answer_space=self.answer_space,
             batch_size=self.batch_size,

@@ -4,20 +4,14 @@ The module contains utility functions for PyTorch.
 The module contains the following functions:
 
 - :func:`ensure_reproducibility` - Seed all the random number generators.
-
-The module contains the following constants:
-
-- :const:`device` - A device to be used.
 """
 from collections.abc import Callable, Sequence
-from typing import Any, Final
+from typing import Any
 
 import torch
 from lightning import seed_everything
-from torch.types import Device
-
-# A device to be used
-device: Final[Device] = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from torch import nn
+from transformers import BatchEncoding, BatchFeature
 
 
 def ensure_reproducibility(seed: int = 42) -> None:
@@ -35,7 +29,7 @@ def ensure_reproducibility(seed: int = 42) -> None:
 
 
 def squeeze_dict_of_tensors(
-    dict_of_tensors: dict[Any, torch.Tensor]
+    dict_of_tensors: dict[Any, torch.Tensor] | BatchEncoding | BatchFeature
 ) -> dict[Any, torch.Tensor]:
     """
     Squeeze the dict of tensors.
@@ -61,3 +55,26 @@ def freeze_model_parameters(model, excludes: Sequence[Callable[[str], bool]] = (
         param.requires_grad = False
         if any(exclude(name) for exclude in excludes):
             param.requires_grad = True
+
+
+def backbone_name_to_kebab_case(backbone_name: str) -> str:
+    """
+    Convert the backbone name to kebab case.
+
+    :param backbone_name: The name of the backbone.
+    :return: The backbone name in kebab case.
+    """
+    return backbone_name.replace("/", "-")
+
+
+def initialize_linear_weights(model: nn.Module):
+    """
+    Initialize the linear weights.
+
+    :param model: A model.
+    """
+    for module in model.modules():
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.constant_(module.bias, 0)

@@ -13,6 +13,7 @@ import datasets
 import pandas as pd
 
 from config.datasets.vqa_v2 import VQA_V2_SAMPLE_ANSWERS_SPACE_PATH
+from utils.datasets.pipelines import flatten_multiple_answers
 from utils.datasets.vqa_v2 import (
     load_vqa_v2_sample_test_dataset,
     load_vqa_v2_sample_train_dataset,
@@ -36,28 +37,26 @@ def get_answers_space(
     :return: The answers space.
     """
     logger.info("Getting the answers space...")
-    return (
-        pd.DataFrame(
-            pd.concat(
-                [
-                    pd.Series(
-                        train_data["multiple_choice_answer"],
-                    ),
-                    pd.Series(
-                        val_data["multiple_choice_answer"],
-                    ),
-                    pd.Series(
-                        test_data["multiple_choice_answer"],
-                    ),
-                    pd.Series(itertools.chain.from_iterable(train_data["answers"])),
-                    pd.Series(itertools.chain.from_iterable(val_data["answers"])),
-                ]
-            ).unique(),
-            columns=["answer"],
-        )
-        .rename_axis("answer_id")
-        .reset_index()
+    answers = pd.DataFrame(
+        pd.concat(
+            [
+                pd.Series(
+                    train_data["multiple_choice_answer"],
+                ),
+                pd.Series(
+                    val_data["multiple_choice_answer"],
+                ),
+                pd.Series(
+                    test_data["multiple_choice_answer"],
+                ),
+                pd.Series(itertools.chain.from_iterable(train_data["answers"])),
+                pd.Series(itertools.chain.from_iterable(val_data["answers"])),
+            ]
+        ).unique(),
+        columns=["answer"],
     )
+    # Split the answers containing multiple answers into multiple rows.
+    return flatten_multiple_answers(answers).rename_axis("answer_id").reset_index()
 
 
 def save_answers_space(answers_space: pd.DataFrame, path: Path):

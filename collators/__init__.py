@@ -2,8 +2,10 @@
 import dataclasses
 from typing import Final
 
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
+from models.backbones import BackboneConfig
 from transforms.noop import noop
 from utils.datasets import AnswerSpace
 from utils.registry import Registry, RegistryKey
@@ -14,11 +16,11 @@ from utils.types import SingleImageTransformsType, TransformsType
 class MultiModalCollator:
     """The multi-modal collator."""
 
-    tokenizer: AutoTokenizer
-    image_processor: AutoImageProcessor
-    image_transforms: SingleImageTransformsType = dataclasses.field(
-        default_factory=noop
-    )
+    tokenizer: PreTrainedTokenizer
+    image_processor: BaseImageProcessor
+    image_encoder_config: type[BackboneConfig]
+    text_encoder_config: type[BackboneConfig]
+    image_transforms: SingleImageTransformsType = dataclasses.field(default_factory=noop)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -30,8 +32,10 @@ class ClassificationCollator(MultiModalCollator):
     @classmethod
     def get_dataloaders(
         cls,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
+        image_encoder_config: type[BackboneConfig],
+        text_encoder_config: type[BackboneConfig],
         image_transforms: TransformsType,
         answer_space: AnswerSpace,
         batch_size: int = 64,
@@ -41,6 +45,8 @@ class ClassificationCollator(MultiModalCollator):
 
         :param tokenizer: The tokenizer.
         :param image_processor: The preprocessor.
+        :param image_encoder_config: The image encoder config.
+        :param text_encoder_config: The text encoder config.
         :param image_transforms: The image transforms
                                     to apply to the images
                                     (per phase).
@@ -57,10 +63,13 @@ class AvailableCollators(RegistryKey):
     VQA_V2_SAMPLE = "vqa_v2_sample"
 
 
-class MultiModalCollatorRegistry(Registry[AvailableCollators, MultiModalCollator]):
+class MultiModalCollatorRegistry(Registry[AvailableCollators, type[MultiModalCollator]]):
     """The multi-modal collator registry."""
 
-    pass
+    @classmethod
+    def initialize(cls) -> None:
+        """Initialize the registry."""
+        from collators import vqa_v2  # noqa: F401
 
 
 registry: Final[Registry] = MultiModalCollatorRegistry()

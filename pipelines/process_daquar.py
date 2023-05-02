@@ -21,6 +21,7 @@ from config.datasets.daquar import (
     RAW_DAQUAR_DATA_FILES,
     RAW_DAQUAR_PATH,
 )
+from utils.datasets.pipelines import flatten_multiple_answers
 
 logger = logging.getLogger(__name__)
 
@@ -68,31 +69,6 @@ def save_flatten_data(
     train_data_file, eval_data_file = PROCESSED_DAQUAR_DATA_FILES
     flattened_train_data.to_csv(PROCESSED_DAQUAR_PATH / train_data_file, index=False)
     flattened_eval_data.to_csv(PROCESSED_DAQUAR_PATH / eval_data_file, index=False)
-
-
-def flatten_multiple_answers(
-    data: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Flatten multiple, comma-separated answers into separate rows.
-
-    For each row with multiple answers, the function creates a new row for each answer.
-    The new rows are identical to the original row, except for the answer column.
-
-    :param data: A dataframe with multiple answers in a single row.
-    :return: A dataframe with a single answer in a single row.
-    """
-    flattened_data = data.iloc[data.index.repeat(data["answer"].str.count(",") + 1)]
-    split_answers = (
-        data["answer"]
-        .str.split(",", expand=True)
-        .stack()
-        .reset_index(level=1, drop=True)
-        .rename("answer")
-    )
-    flattened_data["answer"] = split_answers.str.strip()
-    flattened_data.reset_index(drop=True, inplace=True)
-    return flattened_data
 
 
 def main():

@@ -5,9 +5,11 @@ import operator
 
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import AutoImageProcessor, AutoTokenizer
+from transformers import PreTrainedTokenizer
+from transformers.image_processing_utils import BaseImageProcessor
 
-from collators import AvailableCollators, MultiModalCollator, registry
+from collators import AvailableCollators, ClassificationCollator, registry
+from models.backbones import BackboneConfig
 from utils.datasets import convert_batch_to_dict_of_features
 from utils.datasets.vqa_v2 import (
     VqaV2SampleAnswerSpace,
@@ -22,13 +24,11 @@ from utils.types import TransformsType
 
 @registry.register(AvailableCollators.VQA_V2_SAMPLE)
 @dataclasses.dataclass(frozen=True)
-class VqaV2SampleCollator(MultiModalCollator):
+class VqaV2SampleCollator(ClassificationCollator):
     """The VQA V2 collator."""
 
     #: The answer space.
-    answer_space: VqaV2SampleAnswerSpace = dataclasses.field(
-        default_factory=VqaV2SampleAnswerSpace
-    )
+    answer_space: VqaV2SampleAnswerSpace = dataclasses.field(default_factory=VqaV2SampleAnswerSpace)
 
     def get_answer_labels(self, batch):
         """
@@ -39,10 +39,7 @@ class VqaV2SampleCollator(MultiModalCollator):
         """
         return {
             "answer_label": torch.tensor(
-                [
-                    self.answer_space.answer_to_answer_id(answer)
-                    for answer in batch["multiple_choice_answer"]
-                ],
+                [self.answer_space.answer_to_answer_id(answer) for answer in batch["multiple_choice_answer"]],
                 dtype=torch.int64,
             ).squeeze()
         }
@@ -56,12 +53,9 @@ class VqaV2SampleCollator(MultiModalCollator):
         """
         assert callable(self.image_processor), "The image processor is not callable."
         return squeeze_dict_of_tensors(
-            self.image_processor(
-                images=[
-                    self.image_transforms(image.convert("RGB"))
-                    for image in batch["image"]
-                ],
-                return_tensors="pt",
+            self.image_encoder_config.get_processed_image(
+                self.image_processor,
+                image=[self.image_transforms(image.convert("RGB")) for image in batch["image"]],
             )
         )
 
@@ -72,15 +66,10 @@ class VqaV2SampleCollator(MultiModalCollator):
         :param batch: The batch.
         :return: The text features.
         """
-        assert callable(self.tokenizer), "The tokenizer is not callable."
         return squeeze_dict_of_tensors(
-            self.tokenizer(
+            self.text_encoder_config.get_tokenized_text(
+                self.tokenizer,
                 text=batch["question"],
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt",
-                return_token_type_ids=True,
-                return_attention_mask=True,
             )
         )
 
@@ -104,8 +93,10 @@ class VqaV2SampleCollator(MultiModalCollator):
     @classmethod
     def get_dataloaders(
         cls,
-        tokenizer: AutoTokenizer,
-        image_processor: AutoImageProcessor,
+        tokenizer: PreTrainedTokenizer,
+        image_processor: BaseImageProcessor,
+        image_encoder_config: type[BackboneConfig],
+        text_encoder_config: type[BackboneConfig],
         image_transforms: TransformsType,
         answer_space: VqaV2SampleAnswerSpace,
         batch_size: int = 64,
@@ -115,6 +106,8 @@ class VqaV2SampleCollator(MultiModalCollator):
 
         :param tokenizer: The tokenizer.
         :param image_processor: The preprocessor.
+        :param image_encoder_config: The image encoder config.
+        :param text_encoder_config: The text encoder config.
         :param image_transforms: The image transforms to apply to the images.
         :param batch_size: The batch size.
         :param answer_space: The answer space.
@@ -132,6 +125,8 @@ class VqaV2SampleCollator(MultiModalCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.TRAIN],
                 answer_space=answer_space,
             ),
@@ -144,6 +139,8 @@ class VqaV2SampleCollator(MultiModalCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.EVAL],
                 answer_space=answer_space,
             ),
@@ -156,6 +153,8 @@ class VqaV2SampleCollator(MultiModalCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.TEST],
                 answer_space=answer_space,
             ),

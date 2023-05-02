@@ -6,8 +6,8 @@ import torch.optim
 
 from utils.phase import Phase
 
-TransformsType = dict[
-    Phase, Callable[[PIL.Image.Image], PIL.Image.Image | torch.Tensor]
-]
+ImageType = PIL.Image.Image | torch.Tensor
 
-SingleImageTransformsType = Callable[[PIL.Image.Image], PIL.Image.Image | torch.Tensor]
+TransformsType = dict[Phase, Callable[[PIL.Image.Image], ImageType]]
+
+SingleImageTransformsType = Callable[[PIL.Image.Image], ImageType]

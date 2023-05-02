@@ -38,17 +38,20 @@ asyncssh==2.13.1
     #   sshfs
 atpublic==3.1.1
     # via flufl-lock
-attrs==22.2.0
+attrs==23.1.0
     # via
     #   aiohttp
     #   dvc-data
     #   sqltrie
+    #   torchmultimodal-nightly
 beautifulsoup4==4.12.0
     # via lightning
 billiard==3.6.4.0
     # via celery
 blessed==1.20.0
     # via inquirer
+blobfile==2.0.2
+    # via dall-e
 celery==5.2.7
     # via dvc-task
 certifi==2022.12.7
@@ -98,6 +101,8 @@ cryptography==39.0.2
     # via asyncssh
 cycler==0.11.0
     # via matplotlib
+dall-e==0.1
+    # via torchmultimodal-nightly
 datasets==2.10.1
     # via vqa (pyproject.toml)
 dateutils==0.6.12
@@ -146,12 +151,15 @@ dvc-task==0.2.0
     # via dvc
 email-validator==1.3.1
     # via fastapi
+exceptiongroup==1.1.1
+    # via pytest
 fastapi[all]==0.88.0
     # via
     #   lightning
     #   lightning-cloud
 filelock==3.9.0
     # via
+    #   blobfile
     #   huggingface-hub
     #   iterative-telemetry
     #   transformers
@@ -213,8 +221,12 @@ idna==3.4
     #   requests
     #   rfc3986
     #   yarl
+iniconfig==2.0.0
+    # via pytest
 inquirer==3.1.3
     # via lightning
+iopath==0.1.10
+    # via torchmultimodal-nightly
 iterative-telemetry==0.0.7
     # via dvc
 itsdangerous==2.1.2
@@ -241,6 +253,8 @@ lightning-utilities==0.8.0
     # via
     #   lightning
     #   pytorch-lightning
+lxml==4.9.2
+    # via blobfile
 markupsafe==2.1.2
     # via jinja2
 matplotlib==3.7.1
@@ -251,6 +265,10 @@ multidict==6.0.4
     #   yarl
 multiprocess==0.70.14
     # via datasets
+mypy==1.2.0
+    # via dall-e
+mypy-extensions==1.0.0
+    # via mypy
 nanotime==0.5.2
     # via dvc-data
 networkx==3.0
@@ -258,6 +276,7 @@ networkx==3.0
 numpy==1.24.2
     # via
     #   contourpy
+    #   dall-e
     #   datasets
     #   lightning
     #   matplotlib
@@ -296,6 +315,7 @@ packaging==23.0
     #   lightning
     #   lightning-utilities
     #   matplotlib
+    #   pytest
     #   pytorch-lightning
     #   torchmetrics
     #   transformers
@@ -309,10 +329,15 @@ pathtools==0.1.2
     # via wandb
 pillow==9.4.0
     # via
+    #   dall-e
     #   matplotlib
     #   torchvision
 platformdirs==3.1.1
     # via dvc
+pluggy==1.0.0
+    # via pytest
+portalocker==2.7.0
+    # via iopath
 prompt-toolkit==3.0.38
     # via click-repl
 protobuf==3.20.3
@@ -327,6 +352,8 @@ pyarrow==11.0.0
     # via datasets
 pycparser==2.21
     # via cffi
+pycryptodomex==3.17
+    # via blobfile
 pydantic==1.10.6
     # via
     #   fastapi
@@ -351,6 +378,8 @@ pyparsing==3.0.9
     #   grandalf
     #   matplotlib
     #   pydot
+pytest==7.3.1
+    # via dall-e
 python-dateutil==2.8.2
     # via
     #   arrow
@@ -391,6 +420,7 @@ regex==2022.10.31
     # via transformers
 requests==2.28.2
     # via
+    #   dall-e
     #   datasets
     #   dvc
     #   dvc-studio-client
@@ -475,10 +505,15 @@ timm==0.6.12
     # via vqa (pyproject.toml)
 tokenizers==0.13.2
     # via transformers
+tomli==2.0.1
+    # via
+    #   mypy
+    #   pytest
 tomlkit==0.11.6
     # via dvc
 torch==1.13.1
     # via
+    #   dall-e
     #   lightning
     #   pytorch-lightning
     #   timm
@@ -489,8 +524,11 @@ torchmetrics==0.11.4
     # via
     #   lightning
     #   pytorch-lightning
+torchmultimodal-nightly==2023.4.28
+    # via vqa (pyproject.toml)
 torchvision==0.14.1
     # via
+    #   dall-e
     #   timm
     #   vqa (pyproject.toml)
 tqdm==4.65.0
@@ -499,6 +537,7 @@ tqdm==4.65.0
     #   dvc
     #   dvc-objects
     #   huggingface-hub
+    #   iopath
     #   lightning
     #   pytorch-lightning
     #   transformers
@@ -513,8 +552,10 @@ typing-extensions==4.5.0
     #   asyncssh
     #   dvc-objects
     #   huggingface-hub
+    #   iopath
     #   lightning
     #   lightning-utilities
+    #   mypy
     #   pydantic
     #   pytorch-lightning
     #   torch
@@ -523,6 +564,7 @@ ujson==5.7.0
     # via fastapi
 urllib3==1.26.14
     # via
+    #   blobfile
     #   dulwich
     #   lightning
     #   lightning-cloud

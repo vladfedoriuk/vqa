@@ -5,6 +5,7 @@ from typing import Final
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
+from models.backbones import BackboneConfig
 from transforms.noop import noop
 from utils.datasets import AnswerSpace
 from utils.registry import Registry, RegistryKey
@@ -17,6 +18,8 @@ class MultiModalCollator:
 
     tokenizer: PreTrainedTokenizer
     image_processor: BaseImageProcessor
+    image_encoder_config: type[BackboneConfig]
+    text_encoder_config: type[BackboneConfig]
     image_transforms: SingleImageTransformsType = dataclasses.field(default_factory=noop)
 
 
@@ -31,6 +34,8 @@ class ClassificationCollator(MultiModalCollator):
         cls,
         tokenizer: PreTrainedTokenizer,
         image_processor: BaseImageProcessor,
+        image_encoder_config: type[BackboneConfig],
+        text_encoder_config: type[BackboneConfig],
         image_transforms: TransformsType,
         answer_space: AnswerSpace,
         batch_size: int = 64,
@@ -40,6 +45,8 @@ class ClassificationCollator(MultiModalCollator):
 
         :param tokenizer: The tokenizer.
         :param image_processor: The preprocessor.
+        :param image_encoder_config: The image encoder config.
+        :param text_encoder_config: The text encoder config.
         :param image_transforms: The image transforms
                                     to apply to the images
                                     (per phase).

@@ -3,12 +3,16 @@
 # A script to submit an experiment to the cluster.
 _REMOTE=z1158649@gw.gmum
 
+# Create a `vqa` directory on the remote machine if it doesn't exist.
+ssh -T $_REMOTE << 'EOL'
+  mkdir -p $HOME/vqa
+EOL
 # Copy the code to the remote machine.
-# This will omit some large files - if you need them, rsync them manually:
-#  - data/ - the datasets
-#  - .dvc/ - the dvc cache
-#  - .git/ - the git repo
-rsync -vrzhe ssh ./ $_REMOTE:./vqa --exclude .dvc --exclude data --exclude .git --exclude-from .gitignore --exclude-from .git/info/exclude
+# This will omit some large files - if you need them, rsync them manually.
+# The files that are omitted are:
+# - some files ignored by git
+# - the dvc cache
+rsync -vrzhe ssh ./ $_REMOTE:./vqa
 
 # Run the experiment on the remote machine.
 if [[ $1 == "experiment" ]]; then

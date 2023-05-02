@@ -10,15 +10,15 @@ stages:
       md5: a8bdadf3dc81a0b92b7d8f35f81b5edf
       size: 370864
     - path: pipelines/process_daquar.py
-      md5: 936063439ad9c099fc2bd22b95290073
-      size: 3234
+      md5: 9a9ee06486599c9a4e1d7808dcc4345d
+      size: 2440
     outs:
     - path: data/processed/daquar/daquar_eval_flattened.csv
-      md5: 3ef80b708d05da1736d2adc8c7572382
-      size: 338651
+      md5: 33db2cfd3f39ba0b32bf50dcfab01a67
+      size: 363808
     - path: data/processed/daquar/daquar_train_flattened.csv
-      md5: ac0e3eb5a1a9307e96f787824ea3cdff
-      size: 404868
+      md5: d2836cc0e4a3528d93860b73178138ea
+      size: 433090
   generate_vqa_v2_samples_answers_space:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_samples.py
     deps:
@@ -33,9 +33,9 @@ stages:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
     deps:
     - path: pipelines/process_vqa_v2_sample.py
-      md5: 66f61bc253bb67ff427f465e0a2a1f09
-      size: 2719
+      md5: 27aa23ef3b8f74c039aa88b281d5a9ac
+      size: 2919
     outs:
     - path: data/processed/vqa_v2/vqa_v2_sample_answers_space.json
-      md5: 0f48bae58dad0839f6fb6d826f751563
-      size: 183323
+      md5: 9afe2a27b0d8540d5fcce66d0ee0570f
+      size: 188454

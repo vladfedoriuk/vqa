@@ -1,5 +1,6 @@
 """The backbone models registry."""
-from typing import Final, Protocol
+from collections.abc import Sequence
+from typing import Final
 
 import torch
 from transformers import BatchEncoding, PreTrainedTokenizer
@@ -9,7 +10,7 @@ from utils.registry import Registry, RegistryKey
 from utils.types import ImageType
 
 
-class AvailableBackbones(RegistryKey):
+class AvailableBackbones(str, RegistryKey):
     """The available backbones."""
 
     # Image backbones
@@ -26,94 +27,104 @@ class AvailableBackbones(RegistryKey):
     ALBERT = "albert-base-v2"
 
 
-class BackboneConfig(Protocol):
+class BackboneConfig:
     """The backbone model config."""
 
-    def get_model(self) -> torch.nn.Module:
+    @classmethod
+    def get_model(cls) -> torch.nn.Module:
         """Get the model."""
         raise NotImplementedError
 
-    def get_image_processor(self) -> BaseImageProcessor:
+    @classmethod
+    def get_image_processor(cls) -> BaseImageProcessor:
         """Get the image processor."""
-        ...
+        raise NotImplementedError
 
-    def get_processed_image(self, processor: BaseImageProcessor, image: ImageType) -> BatchFeature:
+    @classmethod
+    def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
         """Get the image features from processor."""
-        ...
+        raise NotImplementedError
 
+    @classmethod
     def get_image_representation(
-        self, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
+        cls, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
     ) -> torch.Tensor:
         """Get the image representation."""
-        ...
+        raise NotImplementedError
 
+    @classmethod
     def get_image_representation_from_preprocessed(
-        self, model: torch.nn.Module, processor_output: BatchFeature
+        cls, model: torch.nn.Module, processor_output: BatchFeature
     ) -> torch.Tensor:
         """Get the image representation."""
-        ...
+        raise NotImplementedError
 
-    def get_image_representation_size(self) -> int:
+    @classmethod
+    def get_image_representation_size(cls) -> int:
         """Get the image representation size."""
-        ...
+        raise NotImplementedError
 
-    def get_tokenizer(self) -> PreTrainedTokenizer:
+    @classmethod
+    def get_tokenizer(cls) -> PreTrainedTokenizer:
         """Get the tokenizer."""
-        ...
+        raise NotImplementedError
 
-    def get_tokenized_text(self, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
         """Get the tokenized text."""
-        ...
+        raise NotImplementedError
 
-    def get_text_representation_size(self) -> int:
+    @classmethod
+    def get_text_representation_size(cls) -> int:
         """Get the text representation size."""
-        ...
+        raise NotImplementedError
 
-    def get_text_representation(
-        self, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str
-    ) -> torch.Tensor:
+    @classmethod
+    def get_text_representation(cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str) -> torch.Tensor:
         """Get the text representation."""
-        ...
+        raise NotImplementedError
 
+    @classmethod
     def get_text_representation_from_tokenized(
-        self,
+        cls,
         model: torch.nn.Module,
         tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
-        ...
+        raise NotImplementedError
 
 
 class ImageEncoderMixin:
     """The image encoder mixin."""
 
-    @staticmethod
-    def get_processed_image(processor: BaseImageProcessor, image: ImageType) -> BatchFeature:
+    @classmethod
+    def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
         """Get the image features from processor."""
         return processor(image, return_tensors="pt")
 
-    @staticmethod
+    @classmethod
     def get_image_representation_from_preprocessed(
-        model: torch.nn.Module, processor_output: BatchFeature
+        cls, model: torch.nn.Module, processor_output: BatchFeature
     ) -> torch.Tensor:
         """Get the image representation."""
         return model(processor_output["pixel_values"]).pooler_output
 
+    @classmethod
     def get_image_representation(
-        self, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
+        cls, model: torch.nn.Module, processor: BaseImageProcessor, image: ImageType
     ) -> torch.Tensor:
         """Get the image representation."""
-        return self.get_image_representation_from_preprocessed(
+        return cls.get_image_representation_from_preprocessed(
             model=model,
-            processor_output=self.get_processed_image(processor=processor, image=image),
+            processor_output=cls.get_processed_image(processor=processor, image=image),
         )
 
 
 class TextEncoderMixin:
     """The text encoder mixin."""
 
-    @staticmethod
-    def get_tokenized_text(tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
         """Get the tokenized text."""
         return tokenizer(
             text,
@@ -124,21 +135,21 @@ class TextEncoderMixin:
             return_attention_mask=True,
         )
 
-    @staticmethod
+    @classmethod
     def get_text_representation_from_tokenized(
+        cls,
         model: torch.nn.Module,
         tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
         return model(**tokenizer_output).pooler_output
 
-    def get_text_representation(
-        self, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str
-    ) -> torch.Tensor:
+    @classmethod
+    def get_text_representation(cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str) -> torch.Tensor:
         """Get the text representation."""
-        return self.get_text_representation_from_tokenized(
+        return cls.get_text_representation_from_tokenized(
             model=model,
-            tokenizer_output=self.get_tokenized_text(tokenizer=tokenizer, text=text),
+            tokenizer_output=cls.get_tokenized_text(tokenizer=tokenizer, text=text),
         )
 
 

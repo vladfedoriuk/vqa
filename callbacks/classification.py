@@ -18,9 +18,7 @@ class LogClassificationPredictionSamplesCallback(Callback):
     The callback logs the prediction samples to Weights & Biases.
     """
 
-    def __init__(
-        self, logger: WandbLogger, answer_space: AnswerSpace, num_samples: int = 20
-    ):
+    def __init__(self, logger: WandbLogger, answer_space: AnswerSpace, num_samples: int = 20):
         """
         Initialize the callback.
 
@@ -50,18 +48,13 @@ class LogClassificationPredictionSamplesCallback(Callback):
                 f"Multiple Choice Answer: {data_point['multiple_choice_answer']}",
                 "Possible alternative answers:",
                 "\n".join(
-                    {
-                        answer if isinstance(answer, str) else answer["answer"]
-                        for answer in data_point["answers"]
-                    }
+                    {answer if isinstance(answer, str) else answer["answer"] for answer in data_point["answers"]}
                 ),
                 f"Model prediction: {predicted_answer}",
             )
         )
 
-    def on_validation_batch_end(
-        self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0
-    ):
+    def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
         """
         Call when the validation batch ends.
 

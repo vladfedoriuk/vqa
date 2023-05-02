@@ -9,6 +9,7 @@ from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
 from collators import AvailableCollators, ClassificationCollator, registry
+from models.backbones import BackboneConfig
 from utils.datasets import convert_batch_to_dict_of_features
 from utils.datasets.vqa_v2 import (
     VqaV2SampleAnswerSpace,
@@ -52,9 +53,9 @@ class VqaV2SampleCollator(ClassificationCollator):
         """
         assert callable(self.image_processor), "The image processor is not callable."
         return squeeze_dict_of_tensors(
-            self.image_processor(
-                images=[self.image_transforms(image.convert("RGB")) for image in batch["image"]],
-                return_tensors="pt",
+            self.image_encoder_config.get_processed_image(
+                self.image_processor,
+                image=[self.image_transforms(image.convert("RGB")) for image in batch["image"]],
             )
         )
 
@@ -66,13 +67,9 @@ class VqaV2SampleCollator(ClassificationCollator):
         :return: The text features.
         """
         return squeeze_dict_of_tensors(
-            self.tokenizer(
+            self.text_encoder_config.get_tokenized_text(
+                self.tokenizer,
                 text=batch["question"],
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt",
-                return_token_type_ids="token_type_ids" in self.tokenizer.model_input_names,
-                return_attention_mask=True,
             )
         )
 
@@ -98,6 +95,8 @@ class VqaV2SampleCollator(ClassificationCollator):
         cls,
         tokenizer: PreTrainedTokenizer,
         image_processor: BaseImageProcessor,
+        image_encoder_config: type[BackboneConfig],
+        text_encoder_config: type[BackboneConfig],
         image_transforms: TransformsType,
         answer_space: VqaV2SampleAnswerSpace,
         batch_size: int = 64,
@@ -107,6 +106,8 @@ class VqaV2SampleCollator(ClassificationCollator):
 
         :param tokenizer: The tokenizer.
         :param image_processor: The preprocessor.
+        :param image_encoder_config: The image encoder config.
+        :param text_encoder_config: The text encoder config.
         :param image_transforms: The image transforms to apply to the images.
         :param batch_size: The batch size.
         :param answer_space: The answer space.
@@ -124,6 +125,8 @@ class VqaV2SampleCollator(ClassificationCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.TRAIN],
                 answer_space=answer_space,
             ),
@@ -136,6 +139,8 @@ class VqaV2SampleCollator(ClassificationCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.EVAL],
                 answer_space=answer_space,
             ),
@@ -148,6 +153,8 @@ class VqaV2SampleCollator(ClassificationCollator):
             collate_fn=cls(
                 tokenizer=tokenizer,
                 image_processor=image_processor,
+                image_encoder_config=image_encoder_config,
+                text_encoder_config=text_encoder_config,
                 image_transforms=image_transforms[Phase.TEST],
                 answer_space=answer_space,
             ),

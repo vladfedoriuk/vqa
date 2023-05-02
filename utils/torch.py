@@ -10,6 +10,7 @@ from typing import Any
 
 import torch
 from lightning import seed_everything
+from torch import nn
 from transformers import BatchEncoding, BatchFeature
 
 
@@ -64,3 +65,16 @@ def backbone_name_to_kebab_case(backbone_name: str) -> str:
     :return: The backbone name in kebab case.
     """
     return backbone_name.replace("/", "-")
+
+
+def initialize_linear_weights(model: nn.Module):
+    """
+    Initialize the linear weights.
+
+    :param model: A model.
+    """
+    for module in model.modules():
+        if isinstance(module, nn.Linear):
+            nn.init.xavier_uniform_(module.weight)
+            if module.bias is not None:
+                nn.init.constant_(module.bias, 0)

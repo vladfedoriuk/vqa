@@ -42,7 +42,7 @@ class Registry(Generic[KeyType, ValueType]):
         return cls.__instance
 
     def __init_subclass__(cls, **kwargs):
-        """Singleton pattern."""
+        """Registry pattern."""
         super().__init_subclass__(**kwargs)
         cls.__registries[cls] = cls()
 
@@ -96,6 +96,7 @@ def initialize_registries():
     """Context manager to initialize the registries."""
     from collators import MultiModalCollatorRegistry  # noqa: F401
     from models.backbones import BackbonesRegistry  # noqa: F401
+    from models.fusions import FusionModelsRegistry  # noqa: F401
 
     Registry.initialize()
     yield

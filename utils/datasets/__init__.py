@@ -4,9 +4,7 @@ from typing import Any, Protocol
 import torch
 
 
-def convert_batch_to_dict_of_features(
-    batch: list[dict[str, Any]]
-) -> dict[str, list[Any]]:
+def convert_batch_to_dict_of_features(batch: list[dict[str, Any]]) -> dict[str, list[Any]]:
     """
     Convert the batch to a dict of features.
 
@@ -41,10 +39,7 @@ def convert_batch_to_list_of_dicts(batch: dict[str, list[Any]]) -> list[dict[str
         return []
     else:
         some_value = next(iter(batch.values()))
-        return [
-            {key: value[i] for key, value in batch.items()}
-            for i in range(len(some_value))
-        ]
+        return [{key: value[i] for key, value in batch.items()} for i in range(len(some_value))]
 
 
 class AnswerSpace(Protocol):

@@ -96,6 +96,9 @@ class DeepSetTransformerFusionModel(BaseFusionModel):
             text_representation_size=text_representation_size,
             final_representation_size=final_representation_size,
         )
+        # Note that the number of attention heads should be a factor of the representation size
+        # https://discuss.pytorch.org/t/embed-dim-must-be-divisible-by-num-heads/54394
+        # https://stackoverflow.com/questions/66389707/why-embed-dimemsion-must-be-divisible-by-num-of-heads-in-multiheadattention
         self.deep_set_fusion = deepset_transformer(
             channel_to_encoder_dim={
                 "image": self.image_representation_size,
@@ -110,7 +113,7 @@ class DeepSetTransformerFusionModel(BaseFusionModel):
             attention_dim=None,
             modality_normalize=True,
             use_auto_mapping=False,
-            num_transformer_layers=12,
+            num_transformer_layers=1,
         )
         self._initialize_weights()
 

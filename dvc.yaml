@@ -14,3 +14,9 @@ stages:
     - pipelines/process_vqa_v2_sample.py
     outs:
     - data/processed/vqa_v2/vqa_v2_sample_answers_space.json
+  generate_vqa_v2_raw_answers_space:
+    cmd: PYTHONPATH=. python pipelines/generate_vqa_v2_raw_answers_space.py
+    deps:
+    - pipelines/generate_vqa_v2_raw_answers_space.py
+    outs:
+    - data/raw/vqa_v2/vqa_v2_answers_space_raw.json

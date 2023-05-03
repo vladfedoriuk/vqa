@@ -55,7 +55,7 @@ def load_vqa_v2_sample_test_dataset() -> datasets.Dataset:
     )
 
 
-def load_vqa_v2(split: Literal["train", "validation"]) -> datasets.Dataset:
+def load_vqa_v2(split: Literal["train", "validation", "test"]) -> datasets.Dataset:
     """
     Load the VQA V2 dataset.
 
@@ -137,6 +137,7 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         """
         if self._answers_space is None:
             self._answers_space = load_vqa_v2_sample_answers_space()
+            self._add_fake_answer()
         return self._answers_space
 
     def __len__(self):
@@ -159,6 +160,15 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         except IndexError:
             return self._ANSWER_NOT_FOUND
 
+    def __get_answer_id(self, answer):
+        """
+        Get the answer ID.
+
+        :param answer: a given answer
+        :return: The ID of the answer in the processed dataset
+        """
+        return self.answers_space[self.answers_space["answer"] == answer].index[0]
+
     def answer_to_answer_id(self, answer):
         """
         Convert the answer to the answer id.
@@ -168,6 +178,6 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
         """
         answer = self.clean_answer(answer)
         try:
-            return self.answers_space[self.answers_space["answer"] == answer].index[0]
+            return self.__get_answer_id(answer)
         except IndexError:
-            return self.answers_space[self.answers_space["answer"] == self._ANSWER_NOT_FOUND].index[0]
+            return self.__get_answer_id(self._ANSWER_NOT_FOUND)

@@ -1,7 +1,8 @@
 """The classification Lightning modules callbacks."""
-from typing import Any
+from typing import cast
 
 import torch
+import wandb
 from lightning import Callback
 from lightning.pytorch.loggers.wandb import WandbLogger
 
@@ -18,41 +19,28 @@ class LogClassificationPredictionSamplesCallback(Callback):
     The callback logs the prediction samples to Weights & Biases.
     """
 
-    def __init__(self, logger: WandbLogger, answer_space: AnswerSpace, num_samples: int = 20):
+    def __init__(self, answer_space: AnswerSpace, num_samples: int = 20):
         """
         Initialize the callback.
 
-        :param logger: The logger to use.
         :param answer_space: The answer space to use.
         :param num_samples: The number of samples to log.
         """
         super().__init__()
-        self.logger = logger
         self.answer_space = answer_space
         self.num_samples = num_samples
 
-    def get_caption(self, data_point: dict[str, Any], output_logits: torch.Tensor):
+    def get_predicted_answer(self, output_logits: torch.Tensor):
         """
-        Get the caption for the image prediction.
+        Get the predicted answer for the given datapoint and model output logits.
 
-        :param data_point: The data point.
         :param output_logits: The output logits.
         :return: The caption.
         """
         # Get the model prediction
         predicted_answer_id = self.answer_space.logits_to_answer_id(output_logits)
-        predicted_answer = self.answer_space.answer_id_to_answer(predicted_answer_id)
-        return "\n".join(
-            (
-                f"Question: {data_point['question']}",
-                f"Multiple Choice Answer: {data_point['multiple_choice_answer']}",
-                "Possible alternative answers:",
-                "\n".join(
-                    {answer if isinstance(answer, str) else answer["answer"] for answer in data_point["answers"]}
-                ),
-                f"Model prediction: {predicted_answer}",
-            )
-        )
+        # Retrieve the answer from the answer space
+        return self.answer_space.answer_id_to_answer(predicted_answer_id)
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx=0):
         """
@@ -65,13 +53,29 @@ class LogClassificationPredictionSamplesCallback(Callback):
         :param batch_idx: The batch index.
         :param dataloader_idx: The dataloader index.
         """
-        # TODO: Use some random sampling instead of the first samples
-        # TODO: Display the images in a table
         batch = convert_batch_to_list_of_dicts(batch)
-        if batch_idx == 0:
-            images = [data_point["image"] for data_point in batch[: self.num_samples]]
-            captions = [
-                self.get_caption(data_point, output_logits)
-                for data_point, output_logits in zip(batch, outputs["logits"])
-            ][: self.num_samples]
-            self.logger.log_image(key="sample_images", images=images, caption=captions)
+        random_samples = torch.randperm(len(batch))[: self.num_samples]
+        batch = [batch[idx] for idx in random_samples]
+        columns = [
+            "Image",
+            "Question",
+            "Multiple Choice Answer",
+            "Possible alternative answers",
+            "Model prediction",
+        ]
+        data = [
+            [
+                wandb.Image(data_point["image"]),
+                data_point["question"],
+                data_point["multiple_choice_answer"],
+                ", ".join(answer if isinstance(answer, str) else answer["answer"] for answer in data_point["answers"]),
+                self.get_predicted_answer(output_logits),
+            ]
+            for data_point, output_logits in zip(batch, outputs["logits"])
+        ]
+        logger = cast(WandbLogger, pl_module.logger)
+        logger.log_table(
+            key="sample_predictions",
+            columns=columns,
+            data=data,
+        )

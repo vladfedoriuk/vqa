@@ -8,6 +8,7 @@ The experiment can be parameterized using the following command line arguments:
 - ``image_encoder_backbone``: The backbone to use for the image encoder.
 - ``text_encoder_backbone``: The backbone to use for the text encoder.
 - ``fusion``: The fusion model to use.
+- ``epochs``: The number of epochs to train for.
 
 """
 import lightning.pytorch as pl
@@ -37,6 +38,7 @@ def experiment(
     image_encoder_backbone: AvailableBackbones = AvailableBackbones.RESNET,
     text_encoder_backbone: AvailableBackbones = AvailableBackbones.BERT,
     fusion: AvailableFusionModels = AvailableFusionModels.CAT,
+    epochs: int = 10,
 ):
     """
     Run the simple concatenation fusion experiment.
@@ -46,6 +48,7 @@ def experiment(
     :param text_encoder_backbone: The name of the backbone model
                                     to use for the text encoder.
     :param fusion: The name of the fusion model to use.
+    :param epochs: The number of epochs to train for.
     :return: None.
     """
     # Ensure reproducibility.
@@ -96,11 +99,9 @@ def experiment(
         devices=1,
         num_nodes=1,
         strategy="ddp",
-        max_epochs=10,
-        log_every_n_steps=4,
+        max_epochs=epochs,
         callbacks=[
             LogClassificationPredictionSamplesCallback(
-                logger=logger,
                 answer_space=answer_space,
             )
         ],
@@ -115,7 +116,7 @@ def experiment(
         text_encoder_config=text_encoder_config,
         batch_size=64,
     )
-
+    # TODO: Model checkpointing.
     # Create a model.
     model = MultiModalClassificationModule(
         fusion=fusion_model_factory(

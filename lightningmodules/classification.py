@@ -1,11 +1,15 @@
 """The module contains the base class for classification modules."""
+from typing import Literal, cast
+
 import lightning.pytorch as pl
 import torch.optim
-import torchmetrics
+from lightning.pytorch.loggers import WandbLogger
 from torch import nn
+from torchmetrics.functional import accuracy, confusion_matrix
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
+from loggers.wandb import log_confusion_matrix
 from models.backbones import BackboneConfig
 
 
@@ -52,11 +56,7 @@ class MultiModalClassificationModule(pl.LightningModule):
 
         self.image_encoder_config = image_encoder_config
         self.text_encoder_config = text_encoder_config
-
         self.loss = torch.nn.CrossEntropyLoss()
-        self.train_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classes_num)
-        self.val_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classes_num)
-        self.test_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=self.classes_num)
 
     def _get_embeddings(self, batch):
         """
@@ -80,6 +80,54 @@ class MultiModalClassificationModule(pl.LightningModule):
             ),
         }
 
+    def _shared_eval_step(self, batch, prefix: Literal["train", "val", "test"]):
+        """
+        Perform a shared evaluation step.
+
+        :param batch: The batch.
+        :param prefix: The prefix.
+        :return: The loss and logits.
+        """
+        embeddings = self._get_embeddings(batch)
+        fused_repr = self.fusion(embeddings["image_emb"], embeddings["text_emb"])
+        logits = self.classifier(fused_repr)
+        loss = self.loss(logits, batch["answer_label"])
+        self._log_metrics(loss, logits, batch, prefix=prefix)
+        return {
+            "loss": loss,
+            "logits": logits,
+        }
+
+    def _log_metrics(self, loss, logits, batch, prefix: Literal["train", "val", "test"]):
+        """
+        Log the metrics.
+
+        :param loss: The loss.
+        :param logits: The logits.
+        :param batch: The batch.
+        :param prefix: The prefix.
+        :return: None.
+        """
+        self.log_dict(
+            {
+                f"{prefix}_loss": loss,
+                f"{prefix}_acc": accuracy(
+                    logits,
+                    batch["answer_label"],
+                    task="multiclass",
+                    num_classes=self.classes_num,
+                ),
+            },
+        )
+        logger = cast(WandbLogger, self.logger)
+        log_confusion_matrix(
+            logger.experiment,
+            confusion_matrix(
+                logits, batch["answer_label"], num_classes=self.classes_num, task="multiclass", normalize="true"
+            ),
+            caption=f"{prefix}_confusion_matrix",
+        )
+
     def training_step(self, batch, batch_idx):
         """
         Perform a training step.
@@ -88,14 +136,8 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param batch_idx: The batch index.
         :return: The loss.
         """
-        embeddings = self._get_embeddings(batch)
-        fused_repr = self.fusion(embeddings["image_emb"], embeddings["text_emb"])
-        logits = self.classifier(fused_repr)
-        loss = self.loss(logits, batch["answer_label"])
-        self.log("train_loss", loss)
-        self.train_accuracy(logits, batch["answer_label"])
-        self.log("train_acc", self.train_accuracy)
-        return loss
+        eval_step = self._shared_eval_step(batch, prefix="train")
+        return eval_step["loss"]
 
     def configure_optimizers(self):
         """
@@ -113,19 +155,7 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param batch_idx: The batch index.
         :return: The loss and logits.
         """
-        embeddings = self._get_embeddings(batch)
-        fused_repr = self.fusion(embeddings["image_emb"], embeddings["text_emb"])
-        logits = self.classifier(fused_repr)
-        loss = self.loss(logits, batch["answer_label"])
-        # TODO: Log as a dict
-        # TODO: Confusion matrix
-        self.log("val_loss", loss)
-        self.val_accuracy(logits, batch["answer_label"])
-        self.log("val_acc", self.val_accuracy)
-        return {
-            "loss": loss,
-            "logits": logits,
-        }
+        return self._shared_eval_step(batch, prefix="val")
 
     def test_step(self, batch, batch_idx):
         """
@@ -135,14 +165,4 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param batch_idx: The batch index.
         :return: The loss and logits.
         """
-        embeddings = self._get_embeddings(batch)
-        fused_repr = self.fusion(embeddings["image_emb"], embeddings["text_emb"])
-        logits = self.classifier(fused_repr)
-        loss = self.loss(logits, batch["answer_label"])
-        self.log("test_loss", loss)
-        self.test_accuracy(logits, batch["answer_label"])
-        self.log("test_acc", self.test_accuracy)
-        return {
-            "loss": loss,
-            "logits": logits,
-        }
+        return self._shared_eval_step(batch, prefix="test")

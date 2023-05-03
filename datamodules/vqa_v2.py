@@ -88,3 +88,11 @@ class VqaV2SampleDataModule(pl.LightningDataModule):
         :return: The test dataloader.
         """
         return self._dataloaders[Phase.TEST]
+
+    def predict_dataloader(self):
+        """
+        Get the "predict" dataloader.
+
+        :return: The "predict" dataloader.
+        """
+        return self._dataloaders[Phase.TEST]

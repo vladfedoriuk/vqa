@@ -1,4 +1,11 @@
-"""The classification Lightning modules callbacks."""
+"""
+The classification Lightning modules callbacks.
+
+To know more about the Lightning modules callbacks,
+check out the documentation:
+
+https://lightning.ai/docs/pytorch/stable/extensions/callbacks.html
+"""
 from typing import cast
 
 import torch

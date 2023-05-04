@@ -1,4 +1,11 @@
-"""The module contains the base class for classification modules."""
+"""
+The module contains the base class for classification modules.
+
+To know more about the classification modules,
+check out the documentation:
+
+https://lightning.ai/docs/pytorch/stable/common/lightning_module.html
+"""
 from typing import Literal
 
 import lightning.pytorch as pl

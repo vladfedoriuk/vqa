@@ -18,6 +18,7 @@ import lightning.pytorch as pl
 import typer
 import wandb
 
+from callbacks.checkpoints import get_model_checkpoint
 from callbacks.classification import LogClassificationPredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
@@ -92,9 +93,9 @@ def experiment(
     logger = get_lightning_logger(
         "-".join(
             [
-                f"{fusion}",
-                f"{backbone_name_to_kebab_case(image_encoder_backbone)}",
-                f"{backbone_name_to_kebab_case(text_encoder_backbone)}",
+                f"{fusion.value}",
+                f"{backbone_name_to_kebab_case(image_encoder_backbone.value)}",
+                f"{backbone_name_to_kebab_case(text_encoder_backbone.value)}",
             ]
         )
     )
@@ -124,7 +125,13 @@ def experiment(
         callbacks=[
             LogClassificationPredictionSamplesCallback(
                 answer_space=answer_space,
-            )
+            ),
+            get_model_checkpoint(
+                dataset=dataset,
+                image_encoder=image_encoder_backbone,
+                text_encoder=text_encoder_backbone,
+                fusion=fusion,
+            ),
         ],
     )
 
@@ -139,7 +146,6 @@ def experiment(
         datasets_loading_function=datasets_loading_fn,
         batch_size=64,
     )
-    # TODO: Model checkpointing.
     # Create a model.
     model = MultiModalClassificationModule(
         fusion=fusion_model_factory(

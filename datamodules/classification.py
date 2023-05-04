@@ -1,4 +1,12 @@
-"""The VQA V2 data modules."""
+"""
+The classification data module.
+
+To know more about the classification data modules,
+check out the documentation:
+
+https://lightning.ai/docs/pytorch/stable/data/datamodule.html
+https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/datamodules.html
+"""
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import PreTrainedTokenizer

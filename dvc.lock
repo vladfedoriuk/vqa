@@ -33,9 +33,38 @@ stages:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
     deps:
     - path: pipelines/process_vqa_v2_sample.py
-      md5: 27aa23ef3b8f74c039aa88b281d5a9ac
-      size: 2919
+      md5: 91ce8a2c0a7803ff1b67dd4cce90f7f1
+      size: 2737
     outs:
     - path: data/processed/vqa_v2/vqa_v2_sample_answers_space.json
       md5: 9afe2a27b0d8540d5fcce66d0ee0570f
       size: 188454
+  generate_vqa_v2_raw_answers_space:
+    cmd: PYTHONPATH=. python pipelines/generate_vqa_v2_raw_answers_space.py
+    deps:
+    - path: data/raw/vqa_v2/examples/vqa_v2_answers_space_raw_example.json
+      md5: 3ca2c6472c2b2161a34e5a03a7815d70
+      size: 10548076
+    - path: pipelines/generate_vqa_v2_raw_answers_space.py
+      md5: 55342a6084e149c1b2ae079b7f6a0e55
+      size: 3654
+    params:
+      params.yaml:
+        vqa_v2.answers_space.raw.copy_example: true
+    outs:
+    - path: data/raw/vqa_v2/vqa_v2_answers_space_raw.json
+      md5: 3ca2c6472c2b2161a34e5a03a7815d70
+      size: 10548076
+  process_vqa_v2:
+    cmd: PYTHONPATH=. python pipelines/process_vqa_v2.py
+    deps:
+    - path: data/raw/vqa_v2/vqa_v2_answers_space_raw.json
+      md5: 3ca2c6472c2b2161a34e5a03a7815d70
+      size: 10548076
+    - path: pipelines/process_vqa_v2.py
+      md5: a7eafa850998aa3ebf9ab111e3af9fb4
+      size: 1311
+    outs:
+    - path: data/processed/vqa_v2/vqa_v2_answers_space.json
+      md5: 7d7e1cc5157486938b0723ed2f64401f
+      size: 11542913

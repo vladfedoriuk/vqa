@@ -5,11 +5,15 @@ The raw answers space is the set of all the answers in the dataset.
 """
 import itertools
 import logging
+from shutil import copyfileobj
 
 import datasets
 import pandas as pd
 
-from config.datasets.vqa_v2 import VQA_V2_RAW_ANSWERS_SPACE_PATH
+from config.datasets.vqa_v2 import (
+    VQA_V2_ANSWERS_SPACE_EXAMPLE_PATH,
+    VQA_V2_RAW_ANSWERS_SPACE_PATH,
+)
 from utils.datasets.vqa_v2 import load_vqa_v2
 
 logger = logging.getLogger(__name__)
@@ -87,8 +91,27 @@ def save_raw_answers_space(raw_answers_space: pd.DataFrame):
     )
 
 
+def copy_example_raw_answers_space():
+    """Copy an example raw answers space for the VQA V2 dataset."""
+    logger.info("Copying a sample raw answers space for the VQA V2 dataset...")
+    with open(VQA_V2_RAW_ANSWERS_SPACE_PATH, "w") as raw_answers_space_f, open(
+        VQA_V2_ANSWERS_SPACE_EXAMPLE_PATH
+    ) as example_raw_answers_space_f:
+        copyfileobj(example_raw_answers_space_f, raw_answers_space_f)
+
+
 def main():
     """Generate the raw answers space for the VQA V2 dataset."""
+    import dvc.api
+
+    params = dvc.api.params_show()
+    if params["vqa_v2"]["answers_space"]["raw"]["copy_example"]:
+        logger.info("Skipping the generation of the raw answers space for the VQA V2 dataset...")
+        logger.info("Copying a sample raw answers space for the VQA V2 dataset...")
+        copy_example_raw_answers_space()
+        logger.info("Done!")
+        return
+
     logger.info("Loading the VQA V2 dataset...")
     datasets_ = _get_datasets()
     logger.info("Generating the raw answers space for the VQA V2 dataset...")

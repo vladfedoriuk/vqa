@@ -1,0 +1,4 @@
+vqa_v2:
+  answers_space:
+    raw:
+      copy_example: true

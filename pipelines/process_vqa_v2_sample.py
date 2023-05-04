@@ -75,7 +75,7 @@ def save_answers_space(answers_space: pd.DataFrame, path: Path):
     )
 
 
-def generate_vqa_v2_sample_answers_space() -> None:
+def main() -> None:
     """
     Generate the answers space for the VQA V2 sample dataset.
 
@@ -93,4 +93,4 @@ def generate_vqa_v2_sample_answers_space() -> None:
 
 
 if __name__ == "__main__":
-    generate_vqa_v2_sample_answers_space()
+    main()

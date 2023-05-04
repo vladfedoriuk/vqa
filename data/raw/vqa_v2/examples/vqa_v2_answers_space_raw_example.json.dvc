@@ -1,4 +1,4 @@
 outs:
 - md5: 3ca2c6472c2b2161a34e5a03a7815d70
   size: 10548076
-  path: vqa_v2_answers_space_raw_sample.json
+  path: vqa_v2_answers_space_raw_example.json

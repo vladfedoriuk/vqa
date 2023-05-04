@@ -18,5 +18,15 @@ stages:
     cmd: PYTHONPATH=. python pipelines/generate_vqa_v2_raw_answers_space.py
     deps:
     - pipelines/generate_vqa_v2_raw_answers_space.py
+    - data/raw/vqa_v2/examples/vqa_v2_answers_space_raw_example.json
+    params:
+      - vqa_v2.answers_space.raw.copy_example
     outs:
     - data/raw/vqa_v2/vqa_v2_answers_space_raw.json
+  process_vqa_v2:
+    cmd: PYTHONPATH=. python pipelines/process_vqa_v2.py
+    deps:
+    - data/raw/vqa_v2/vqa_v2_answers_space_raw.json
+    - pipelines/process_vqa_v2.py
+    outs:
+    - data/processed/vqa_v2/vqa_v2_answers_space.json

@@ -1,15 +1,13 @@
 """The module contains the base class for classification modules."""
-from typing import Literal, cast
+from typing import Literal
 
 import lightning.pytorch as pl
 import torch.optim
-from lightning.pytorch.loggers import WandbLogger
 from torch import nn
-from torchmetrics.functional import accuracy, confusion_matrix
+from torchmetrics.functional import accuracy
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
-from loggers.wandb import log_confusion_matrix
 from models.backbones import BackboneConfig
 
 
@@ -118,14 +116,6 @@ class MultiModalClassificationModule(pl.LightningModule):
                     num_classes=self.classes_num,
                 ),
             },
-        )
-        logger = cast(WandbLogger, self.logger)
-        log_confusion_matrix(
-            logger.experiment,
-            confusion_matrix(
-                logits, batch["answer_label"], num_classes=self.classes_num, task="multiclass", normalize="true"
-            ),
-            caption=f"{prefix}_confusion_matrix",
         )
 
     def training_step(self, batch, batch_idx):

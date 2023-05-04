@@ -1,8 +1,8 @@
 """Registry."""
 import contextlib
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Hashable, MutableMapping
 from enum import Enum
-from typing import ClassVar, Generic, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
 
 ValueType = TypeVar("ValueType")
 
@@ -34,6 +34,7 @@ class Registry(Generic[KeyType, ValueType]):
 
     __instance = None
     __registries: ClassVar[MutableMapping[type["Registry"], "Registry"]] = {}
+    _INTERNAL_REGISTRY_TYPE: ClassVar[type[MutableMapping[Hashable, Any]]] = dict
 
     def __new__(cls, *args, **kwargs):
         """Singleton pattern."""
@@ -45,6 +46,7 @@ class Registry(Generic[KeyType, ValueType]):
         """Registry pattern."""
         super().__init_subclass__(**kwargs)
         cls.__registries[cls] = cls()
+        cls.internal_registry = cls._INTERNAL_REGISTRY_TYPE()
 
     @classmethod
     def initialize(cls) -> None:
@@ -53,7 +55,7 @@ class Registry(Generic[KeyType, ValueType]):
             registry.initialize()
 
     _REGISTRY_TYPE = MutableMapping[KeyType, ValueType]
-    internal_registry: ClassVar[_REGISTRY_TYPE] = {}
+    internal_registry: ClassVar[_REGISTRY_TYPE]
 
     def register(
         self, key: RegistryKey, value: ValueType | None = None
@@ -97,6 +99,8 @@ def initialize_registries():
     from collators import MultiModalCollatorRegistry  # noqa: F401
     from models.backbones import BackbonesRegistry  # noqa: F401
     from models.fusions import FusionModelsRegistry  # noqa: F401
+    from utils.datasets import DatasetsRegistry  # noqa: F401
+    from utils.datasets.answer_space import AnswerSpaceRegistry  # noqa: F401
 
     Registry.initialize()
     yield

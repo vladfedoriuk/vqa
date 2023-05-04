@@ -8,23 +8,31 @@ The experiment can be parameterized using the following command line arguments:
 - ``image_encoder_backbone``: The backbone to use for the image encoder.
 - ``text_encoder_backbone``: The backbone to use for the text encoder.
 - ``fusion``: The fusion model to use.
+- ``dataset``: The dataset to use.
 - ``epochs``: The number of epochs to train for.
 
 """
+from typing import cast
+
 import lightning.pytorch as pl
 import typer
 import wandb
 
 from callbacks.classification import LogClassificationPredictionSamplesCallback
-from datamodules.vqa_v2 import VqaV2SampleDataModule
+from collators import ClassificationCollator
+from collators import registry as collators_registry
+from datamodules.classification import MultiModalClassificationDataModule
 from lightningmodules.classification import MultiModalClassificationModule
 from loggers.wandb import get_lightning_logger
 from models.backbones import AvailableBackbones
 from models.backbones import registry as backbones_config_registry
 from models.classifiers import default_classifier_factory
-from models.fusions import AvailableFusionModels, BaseFusionModel
+from models.fusions import AvailableFusionModels
 from models.fusions import registry as fusions_registry
-from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
+from utils.config import load_env_config
+from utils.datasets import AvailableDatasets
+from utils.datasets import registry as datasets_registry
+from utils.datasets.answer_space import registry as answer_space_registry
 from utils.registry import initialize_registries
 from utils.torch import (
     backbone_name_to_kebab_case,
@@ -34,10 +42,12 @@ from utils.torch import (
 
 
 @initialize_registries()
+@load_env_config()
 def experiment(
     image_encoder_backbone: AvailableBackbones = AvailableBackbones.RESNET,
     text_encoder_backbone: AvailableBackbones = AvailableBackbones.BERT,
     fusion: AvailableFusionModels = AvailableFusionModels.CAT,
+    dataset: AvailableDatasets = AvailableDatasets.VQA_V2_SAMPLE,
     epochs: int = 10,
 ):
     """
@@ -48,6 +58,7 @@ def experiment(
     :param text_encoder_backbone: The name of the backbone model
                                     to use for the text encoder.
     :param fusion: The name of the fusion model to use.
+    :param dataset: The name of the dataset to use.
     :param epochs: The number of epochs to train for.
     :return: None.
     """
@@ -62,7 +73,7 @@ def experiment(
     text_encoder_config = backbones_config_registry.get(text_encoder_backbone)
 
     # Get the fusion model factory.
-    fusion_model_factory: type[BaseFusionModel] = fusions_registry.get(fusion)
+    fusion_model_factory = fusions_registry.get(fusion)
 
     # Get the backbone models and pre-processors
     image_processor = image_encoder_config.get_image_processor()
@@ -89,7 +100,17 @@ def experiment(
     )
 
     # Initialize the answer space.
-    answer_space = VqaV2SampleAnswerSpace()
+    answer_space = answer_space_registry.get(dataset)()
+
+    # Get the collator class.
+    collator_cls = collators_registry.get(dataset)
+
+    # Get the datasets loading function.
+    datasets_loading_fn = datasets_registry.get(dataset)
+
+    if not issubclass(collator_cls, ClassificationCollator):
+        print(f"Expected a classification collator for {dataset}, got {collator_cls}.")
+        raise typer.Abort()
 
     # Create a trainer.
     # TODO: Try deterministic=True.
@@ -108,12 +129,14 @@ def experiment(
     )
 
     # Create a data module.
-    data_module = VqaV2SampleDataModule(
+    data_module = MultiModalClassificationDataModule(
         image_processor=image_processor,
         tokenizer=text_processor,
         answer_space=answer_space,
         image_encoder_config=image_encoder_config,
         text_encoder_config=text_encoder_config,
+        collator_cls=cast(type[ClassificationCollator], collator_cls),
+        datasets_loading_function=datasets_loading_fn,
         batch_size=64,
     )
     # TODO: Model checkpointing.

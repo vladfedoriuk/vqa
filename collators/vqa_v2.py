@@ -4,27 +4,17 @@ import functools
 import operator
 
 import torch
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import PreTrainedTokenizer
-from transformers.image_processing_utils import BaseImageProcessor
 
-from collators import AvailableCollators, ClassificationCollator, registry
-from models.backbones import BackboneConfig
-from utils.datasets import convert_batch_to_dict_of_features
-from utils.datasets.vqa_v2 import (
-    VqaV2SampleAnswerSpace,
-    load_vqa_v2_sample_test_dataset,
-    load_vqa_v2_sample_train_dataset,
-    load_vqa_v2_sample_val_dataset,
-)
-from utils.phase import Phase
+from collators import ClassificationCollator, registry
+from utils.datasets import AvailableDatasets, convert_batch_to_dict_of_features
+from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 from utils.torch import squeeze_dict_of_tensors
-from utils.types import TransformsType
 
 
-@registry.register(AvailableCollators.VQA_V2_SAMPLE)
+@registry.register(AvailableDatasets.VQA_V2)
+@registry.register(AvailableDatasets.VQA_V2_SAMPLE)
 @dataclasses.dataclass(frozen=True)
-class VqaV2SampleCollator(ClassificationCollator):
+class VqaV2Collator(ClassificationCollator):
     """The VQA V2 collator."""
 
     #: The answer space.
@@ -89,79 +79,3 @@ class VqaV2SampleCollator(ClassificationCollator):
             self.get_answer_labels(batch),
         )
         return functools.reduce(operator.or_, features, {})
-
-    @classmethod
-    def get_dataloaders(
-        cls,
-        tokenizer: PreTrainedTokenizer,
-        image_processor: BaseImageProcessor,
-        image_encoder_config: type[BackboneConfig],
-        text_encoder_config: type[BackboneConfig],
-        image_transforms: TransformsType,
-        answer_space: VqaV2SampleAnswerSpace,
-        batch_size: int = 64,
-    ):
-        """
-        Get the data loaders.
-
-        :param tokenizer: The tokenizer.
-        :param image_processor: The preprocessor.
-        :param image_encoder_config: The image encoder config.
-        :param text_encoder_config: The text encoder config.
-        :param image_transforms: The image transforms to apply to the images.
-        :param batch_size: The batch size.
-        :param answer_space: The answer space.
-        :return: The data loaders.
-        """
-        train_data, val_data, test_data = (
-            load_vqa_v2_sample_train_dataset(),
-            load_vqa_v2_sample_val_dataset(),
-            load_vqa_v2_sample_test_dataset(),
-        )
-
-        dataloader_train = DataLoader(
-            train_data,
-            sampler=RandomSampler(train_data),
-            collate_fn=cls(
-                tokenizer=tokenizer,
-                image_processor=image_processor,
-                image_encoder_config=image_encoder_config,
-                text_encoder_config=text_encoder_config,
-                image_transforms=image_transforms[Phase.TRAIN],
-                answer_space=answer_space,
-            ),
-            batch_size=batch_size,
-        )
-
-        dataloader_validation = DataLoader(
-            val_data,
-            sampler=SequentialSampler(val_data),
-            collate_fn=cls(
-                tokenizer=tokenizer,
-                image_processor=image_processor,
-                image_encoder_config=image_encoder_config,
-                text_encoder_config=text_encoder_config,
-                image_transforms=image_transforms[Phase.EVAL],
-                answer_space=answer_space,
-            ),
-            batch_size=batch_size,
-        )
-
-        dataloader_test = DataLoader(
-            test_data,
-            sampler=SequentialSampler(test_data),
-            collate_fn=cls(
-                tokenizer=tokenizer,
-                image_processor=image_processor,
-                image_encoder_config=image_encoder_config,
-                text_encoder_config=text_encoder_config,
-                image_transforms=image_transforms[Phase.TEST],
-                answer_space=answer_space,
-            ),
-            batch_size=batch_size,
-        )
-        return {
-            Phase.TRAIN: dataloader_train,
-            Phase.EVAL: dataloader_validation,
-            Phase.TEST: dataloader_test,
-        }

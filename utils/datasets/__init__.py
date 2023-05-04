@@ -1,7 +1,10 @@
 """The utilities for the datasets."""
-from typing import Any, Protocol
+from collections.abc import Callable
+from typing import Any, Final
 
-import torch
+import datasets
+
+from utils.registry import Registry, RegistryKey
 
 
 def convert_batch_to_dict_of_features(batch: list[dict[str, Any]]) -> dict[str, list[Any]]:
@@ -42,48 +45,35 @@ def convert_batch_to_list_of_dicts(batch: dict[str, list[Any]]) -> list[dict[str
         return [{key: value[i] for key, value in batch.items()} for i in range(len(some_value))]
 
 
-class AnswerSpace(Protocol):
-    """
-    The answer space protocol.
+class AvailableDatasets(str, RegistryKey):
+    """The available datasets."""
 
-    It can be used to convert the answers to answer ids
-    and vice versa.
+    VQA_V2_SAMPLE = "vqa_v2_sample"
+    VQA_V2 = "vqa_v2"
 
-    The protocol is used for type hinting.
-    """
 
-    def __len__(self) -> int:
-        """
-        Get the length of the answer space.
+DatasetsLoadingFunctionType = Callable[[], tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]]
 
-        :return: The length of the answer space.
-        """
-        ...
 
-    def answer_id_to_answer(self, answer_id: int) -> str:
-        """
-        Convert the answer id to the answer.
+class DatasetsRegistry(Registry[AvailableDatasets, DatasetsLoadingFunctionType]):
+    """The datasets' registry."""
 
-        :param answer_id: The answer id.
-        :return: The answer.
-        """
-        ...
+    @classmethod
+    def initialize(cls) -> None:
+        """Initialize the datasets loading functions."""
+        from utils.datasets.vqa_v2 import (  # noqa: F401
+            load_vqa_v2_datasets,
+            load_vqa_v2_sample_datasets,
+        )
 
-    def answer_to_answer_id(self, answer: str) -> int:
-        """
-        Convert the answer to the answer id.
 
-        :param answer: The answer.
-        :return: The answer id.
-        """
-        ...
+registry: Final[DatasetsRegistry] = DatasetsRegistry()
 
-    @staticmethod
-    def logits_to_answer_id(logits: torch.Tensor) -> int:
-        """
-        Convert the logits to the answer id.
-
-        :param logits: The logits.
-        :return: The answer id.
-        """
-        return logits.argmax(-1).detach().cpu().numpy()
+__all__ = [
+    "AvailableDatasets",
+    "convert_batch_to_dict_of_features",
+    "convert_batch_to_list_of_dicts",
+    "DatasetsLoadingFunctionType",
+    "registry",
+    "DatasetsRegistry",
+]

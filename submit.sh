@@ -7,11 +7,17 @@ _REMOTE=z1158649@gw.gmum
 ssh -T $_REMOTE << 'EOL'
   mkdir -p $HOME/vqa
 EOL
+
+# Quit if .env.prod doesn't exist.
+if [[ ! -f .env.prod ]]; then
+  echo "File .env.prod doesn't exist"
+  exit 1
+fi
+
+# Copy the .env.prod file to the remote machine.
+scp .env.prod $_REMOTE:./vqa/.env.prod
+
 # Copy the code to the remote machine.
-# This will omit some large files - if you need them, rsync them manually.
-# The files that are omitted are:
-# - some files ignored by git
-# - the dvc cache
 rsync -vrzhe ssh ./ $_REMOTE:./vqa
 
 # Run the experiment on the remote machine.

@@ -156,10 +156,6 @@ class TextEncoderMixin:
 class BackbonesRegistry(Registry[AvailableBackbones, type[BackboneConfig]]):
     """The backbones model registry."""
 
-    def get_by_name(self, name: str) -> type[BackboneConfig] | None:
-        """Get the backbone config by name."""
-        return self.get(AvailableBackbones(name))
-
     @classmethod
     def initialize(cls) -> None:
         """Initialize the registry."""

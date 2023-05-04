@@ -6,7 +6,8 @@ import wandb
 from lightning import Callback
 from lightning.pytorch.loggers.wandb import WandbLogger
 
-from utils.datasets import AnswerSpace, convert_batch_to_list_of_dicts
+from utils.datasets import convert_batch_to_list_of_dicts
+from utils.datasets.answer_space import AnswerSpace
 
 
 class LogClassificationPredictionSamplesCallback(Callback):

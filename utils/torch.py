@@ -40,6 +40,18 @@ def squeeze_dict_of_tensors(
     return {key: value.squeeze() for key, value in dict_of_tensors.items()}
 
 
+def expand_first_dim_dict_of_tensors(
+    dict_of_tensors: dict[Any, torch.Tensor] | BatchEncoding | BatchFeature
+) -> dict[Any, torch.Tensor]:
+    """
+    Expand the first dimension of the dict of tensors.
+
+    :param dict_of_tensors: The dict of tensors.
+    :return: The expanded dict of tensors.
+    """
+    return {key: value.unsqueeze(0) for key, value in dict_of_tensors.items()}
+
+
 def freeze_model_parameters(model, excludes: Sequence[Callable[[str], bool]] = ()):
     """
     Freezes some model parameters.
@@ -78,3 +90,13 @@ def initialize_linear_weights(model: nn.Module):
             nn.init.xavier_uniform_(module.weight)
             if module.bias is not None:
                 nn.init.constant_(module.bias, 0)
+
+
+__all__ = [
+    "ensure_reproducibility",
+    "squeeze_dict_of_tensors",
+    "expand_first_dim_dict_of_tensors",
+    "freeze_model_parameters",
+    "backbone_name_to_kebab_case",
+    "initialize_linear_weights",
+]

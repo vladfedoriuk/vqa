@@ -7,6 +7,7 @@ For more information, see:
 - https://lightning.ai/docs/pytorch/latest/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
 """  # noqa: E501
 from functools import lru_cache
+from typing import Any, Literal
 
 import torch
 import wandb
@@ -14,6 +15,7 @@ from lightning.pytorch.loggers.wandb import WandbLogger
 from wandb.sdk.wandb_run import Run
 
 from config.env import WANDB_PROJECT
+from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 
 
 @lru_cache(maxsize=1)
@@ -50,3 +52,83 @@ def log_confusion_matrix(run: Run, cm: torch.Tensor, caption: str):
     cm = cm.cpu().numpy().squeeze()
     image = wandb.Image(cm, caption=caption)
     run.log({"confusion_matrix": image})
+
+
+def log_vqa_v2_predictions_as_table(
+    logger: WandbLogger,
+    answer_space: VqaV2SampleAnswerSpace,
+    batch: list[dict[str, Any]],
+    outputs: dict[Literal["logits"], torch.Tensor],
+) -> None:
+    """
+    Log the VQA v2 predictions as a table to Weights & Biases.
+
+    :param logger: The logger.
+    :param answer_space: The answer space.
+    :param batch: The batch.
+    :param outputs: The outputs.
+    :return: None.
+    """
+    from utils.datasets.answer_space import get_predicted_answer
+
+    columns = [
+        "Image",
+        "Question",
+        "Multiple Choice Answer",
+        "Possible alternative answers",
+        "Model prediction",
+    ]
+    data = [
+        [
+            wandb.Image(data_point["image"]),
+            data_point["question"],
+            data_point["multiple_choice_answer"],
+            ", ".join(answer if isinstance(answer, str) else answer["answer"] for answer in data_point["answers"]),
+            get_predicted_answer(answer_space=answer_space, output_logits=output_logits),
+        ]
+        for data_point, output_logits in zip(batch, outputs["logits"])
+    ]
+    logger.log_table(
+        key="sample_predictions",
+        columns=columns,
+        data=data,
+    )
+
+
+def log_daquar_predictions_as_table(
+    logger: WandbLogger,
+    answer_space: VqaV2SampleAnswerSpace,
+    batch: list[dict[str, Any]],
+    outputs: dict[Literal["logits"], torch.Tensor],
+):
+    """
+    Log the Daquar predictions as a table to Weights & Biases.
+
+    :param logger: The logger.
+    :param answer_space: The answer space.
+    :param batch: The batch.
+    :param outputs: The outputs.
+    :return: None.
+    """
+    from utils.datasets.answer_space import get_predicted_answer
+
+    columns = [
+        "Image",
+        "Question",
+        "Answer",
+        "Model prediction",
+    ]
+    data = [
+        [
+            wandb.Image(data_point["image"]),
+            data_point["question"],
+            data_point["answer"],
+            get_predicted_answer(answer_space=answer_space, output_logits=output_logits),
+        ]
+        for data_point, output_logits in zip(batch, outputs["logits"])
+    ]
+    logger.log_table(
+        key="sample_predictions",
+        columns=columns,
+        data=data,
+    )

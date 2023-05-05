@@ -19,7 +19,7 @@ import typer
 import wandb
 
 from callbacks.checkpoints import get_model_checkpoint
-from callbacks.classification import LogClassificationPredictionSamplesCallback
+from callbacks.sample import PredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
 from datamodules.classification import MultiModalClassificationDataModule
@@ -123,8 +123,9 @@ def experiment(
         strategy="ddp",
         max_epochs=epochs,
         callbacks=[
-            LogClassificationPredictionSamplesCallback(
+            PredictionSamplesCallback(
                 answer_space=answer_space,
+                dataset=dataset,
             ),
             get_model_checkpoint(
                 dataset=dataset,
@@ -162,12 +163,10 @@ def experiment(
         image_encoder_config=image_encoder_config,
         text_encoder_config=text_encoder_config,
     )
-
-    # Train, test, validate and predict.
+    # TODO: what are these exactly?
+    # Train, validate, and test.
     trainer.fit(model, datamodule=data_module)
     trainer.test(datamodule=data_module)
-    trainer.validate(datamodule=data_module)
-    trainer.predict(datamodule=data_module)
 
 
 if __name__ == "__main__":

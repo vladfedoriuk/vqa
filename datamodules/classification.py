@@ -7,6 +7,7 @@ check out the documentation:
 https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/datamodules.html
 """
+import datasets
 import lightning.pytorch as pl
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import PreTrainedTokenizer
@@ -18,7 +19,6 @@ from transforms.noop import noop
 from transforms.vqa_v2 import image_augmentation_for_vqa_v2
 from utils.datasets import DatasetsLoadingFunctionType
 from utils.datasets.answer_space import AnswerSpace
-from utils.phase import Phase
 
 
 class MultiModalClassificationDataModule(pl.LightningDataModule):
@@ -51,9 +51,9 @@ class MultiModalClassificationDataModule(pl.LightningDataModule):
         self.image_encoder_config = image_encoder_config
         self.text_encoder_config = text_encoder_config
         self.image_transforms = {
-            Phase.TRAIN: image_augmentation_for_vqa_v2,
-            Phase.EVAL: noop,
-            Phase.TEST: noop,
+            datasets.Split.TRAIN: image_augmentation_for_vqa_v2,
+            datasets.Split.VALIDATION: noop,
+            datasets.Split.TEST: noop,
         }
         self.answer_space = answer_space
         self.batch_size = batch_size
@@ -69,7 +69,7 @@ class MultiModalClassificationDataModule(pl.LightningDataModule):
         :return: None.
         """
         # TODO: Use ``stage`` parameter.
-        self._datasets = dict(zip(Phase, self.dataset_loading_function()))
+        self._datasets = self.dataset_loading_function()
 
     def train_dataloader(self):
         """
@@ -78,17 +78,19 @@ class MultiModalClassificationDataModule(pl.LightningDataModule):
         :return: The training dataloader.
         """
         return DataLoader(
-            self._datasets[Phase.TRAIN],
-            sampler=RandomSampler(self._datasets[Phase.TRAIN]),
+            self._datasets[datasets.Split.TRAIN],
+            sampler=RandomSampler(self._datasets[datasets.Split.TRAIN]),
             collate_fn=self.collator_cls(
                 tokenizer=self.tokenizer,
                 image_processor=self.image_processor,
                 image_encoder_config=self.image_encoder_config,
                 text_encoder_config=self.text_encoder_config,
-                image_transforms=self.image_transforms[Phase.TRAIN],
+                image_transforms=self.image_transforms[datasets.Split.TRAIN],
                 answer_space=self.answer_space,
             ),
             batch_size=self.batch_size,
+            num_workers=6,
+            drop_last=True,
         )
 
     def val_dataloader(self):
@@ -98,17 +100,19 @@ class MultiModalClassificationDataModule(pl.LightningDataModule):
         :return: The validation dataloader.
         """
         return DataLoader(
-            self._datasets[Phase.EVAL],
-            sampler=SequentialSampler(self._datasets[Phase.EVAL]),
+            self._datasets[datasets.Split.VALIDATION],
+            sampler=SequentialSampler(self._datasets[datasets.Split.VALIDATION]),
             collate_fn=self.collator_cls(
                 tokenizer=self.tokenizer,
                 image_processor=self.image_processor,
                 image_encoder_config=self.image_encoder_config,
                 text_encoder_config=self.text_encoder_config,
-                image_transforms=self.image_transforms[Phase.EVAL],
+                image_transforms=self.image_transforms[datasets.Split.VALIDATION],
                 answer_space=self.answer_space,
             ),
             batch_size=self.batch_size,
+            num_workers=6,
+            drop_last=True,
         )
 
     def test_dataloader(self):
@@ -118,17 +122,19 @@ class MultiModalClassificationDataModule(pl.LightningDataModule):
         :return: The test dataloader.
         """
         return DataLoader(
-            self._datasets[Phase.TEST],
-            sampler=SequentialSampler(self._datasets[Phase.TEST]),
+            self._datasets[datasets.Split.TEST],
+            sampler=SequentialSampler(self._datasets[datasets.Split.TEST]),
             collate_fn=self.collator_cls(
                 tokenizer=self.tokenizer,
                 image_processor=self.image_processor,
                 image_encoder_config=self.image_encoder_config,
                 text_encoder_config=self.text_encoder_config,
-                image_transforms=self.image_transforms[Phase.TEST],
+                image_transforms=self.image_transforms[datasets.Split.TEST],
                 answer_space=self.answer_space,
             ),
             batch_size=self.batch_size,
+            num_workers=6,
+            drop_last=True,
         )
 
     def predict_dataloader(self):

@@ -10,15 +10,15 @@ stages:
       md5: a8bdadf3dc81a0b92b7d8f35f81b5edf
       size: 370864
     - path: pipelines/process_daquar.py
-      md5: 9a9ee06486599c9a4e1d7808dcc4345d
-      size: 2440
+      md5: 0adc1a3387396c7acc15d74d7060d5ea
+      size: 2504
     outs:
     - path: data/processed/daquar/daquar_eval_flattened.csv
-      md5: 33db2cfd3f39ba0b32bf50dcfab01a67
-      size: 363808
+      md5: 3ef80b708d05da1736d2adc8c7572382
+      size: 338651
     - path: data/processed/daquar/daquar_train_flattened.csv
-      md5: d2836cc0e4a3528d93860b73178138ea
-      size: 433090
+      md5: ac0e3eb5a1a9307e96f787824ea3cdff
+      size: 404868
   generate_vqa_v2_samples_answers_space:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_samples.py
     deps:
@@ -33,12 +33,15 @@ stages:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
     deps:
     - path: pipelines/process_vqa_v2_sample.py
-      md5: 91ce8a2c0a7803ff1b67dd4cce90f7f1
-      size: 2737
+      md5: f402ece314ee2d2a6962cbcc8f217fd2
+      size: 3973
+    params:
+      params.yaml:
+        vqa_v2_sample.answers_space.include_alternative_answers: false
     outs:
     - path: data/processed/vqa_v2/vqa_v2_sample_answers_space.json
-      md5: 9afe2a27b0d8540d5fcce66d0ee0570f
-      size: 188454
+      md5: 8188bed4a7f400c3d97782415746ded8
+      size: 39688
   generate_vqa_v2_raw_answers_space:
     cmd: PYTHONPATH=. python pipelines/generate_vqa_v2_raw_answers_space.py
     deps:
@@ -46,11 +49,12 @@ stages:
       md5: 3ca2c6472c2b2161a34e5a03a7815d70
       size: 10548076
     - path: pipelines/generate_vqa_v2_raw_answers_space.py
-      md5: 8278cc507f82ad91775df279907478ae
-      size: 3687
+      md5: 7c1fc2cc66014f75ce68e1f3d4c4acab
+      size: 4632
     params:
       params.yaml:
         vqa_v2.answers_space.raw.copy_example: true
+        vqa_v2.answers_space.raw.include_alternative_answers: false
     outs:
     - path: data/raw/vqa_v2/vqa_v2_answers_space_raw.json
       md5: 3ca2c6472c2b2161a34e5a03a7815d70

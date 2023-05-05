@@ -32,7 +32,6 @@ def load_daquar_data() -> tuple[pd.DataFrame, pd.DataFrame]:
 
     :return: A tuple containing training and evaluation dataframes respectively.
     """
-    logger.info("Loading the DAQUAR dataset...")
     train_data_file, eval_data_file = RAW_DAQUAR_DATA_FILES
     train_data = pd.read_csv(RAW_DAQUAR_PATH / train_data_file)
     eval_data = pd.read_csv(RAW_DAQUAR_PATH / eval_data_file)
@@ -50,11 +49,10 @@ def flatten_data(
     :param eval_data: The evaluation data.
     :return: The flattened training and evaluation data.
     """
-    logger.info("Flattening the DAQUAR dataset...")
     return flatten_multiple_answers(train_data), flatten_multiple_answers(eval_data)
 
 
-def save_flatten_data(
+def save_flattened_data(
     flattened_train_data: pd.DataFrame,
     flattened_eval_data: pd.DataFrame,
 ) -> None:
@@ -65,7 +63,6 @@ def save_flatten_data(
     :param flattened_eval_data: The flattened evaluation data.
     :return: None
     """
-    logger.info("Saving the flattened DAQUAR dataset...")
     train_data_file, eval_data_file = PROCESSED_DAQUAR_DATA_FILES
     flattened_train_data.to_csv(PROCESSED_DAQUAR_PATH / train_data_file, index=False)
     flattened_eval_data.to_csv(PROCESSED_DAQUAR_PATH / eval_data_file, index=False)
@@ -74,7 +71,12 @@ def save_flatten_data(
 def main():
     """Run the pipeline."""
     logger.info("Running the DAQUAR processing pipeline...")
-    save_flatten_data(*flatten_data(*load_daquar_data()))
+    logger.info("Loading the DAQUAR dataset...")
+    daquar = load_daquar_data()
+    logger.info("Flattening the DAQUAR dataset...")
+    flattened_daquar = flatten_data(*daquar)
+    logger.info("Saving the flattened DAQUAR dataset...")
+    save_flattened_data(*flattened_daquar)
     logger.info("Finished running the DAQUAR processing pipeline.")
 
 

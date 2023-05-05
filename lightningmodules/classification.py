@@ -47,8 +47,7 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param classes_num: The number of classes.
         """
         super().__init__()
-        self.save_hyperparameters(ignore=["image_encoder", "text_encoder"])
-
+        self.save_hyperparameters(ignore=["image_encoder", "text_encoder", "fusion", "classifier"])
         self.fusion = fusion
         self.classifier = classifier
         self.image_encoder = image_encoder
@@ -123,6 +122,7 @@ class MultiModalClassificationModule(pl.LightningModule):
                     num_classes=self.classes_num,
                 ),
             },
+            sync_dist=True,
         )
 
     def training_step(self, batch, batch_idx):

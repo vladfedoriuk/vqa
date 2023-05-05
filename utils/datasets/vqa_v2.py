@@ -11,7 +11,7 @@ from config.datasets.vqa_v2 import (
 )
 from utils.datasets import AvailableDatasets
 from utils.datasets import registry as datasets_registry
-from utils.datasets.answer_space import AnswerSpace
+from utils.datasets.answer_space import PandasAnswerSpace
 from utils.datasets.answer_space import registry as answer_space_registry
 
 
@@ -101,7 +101,7 @@ def load_vqa_v2_answers_space() -> pd.DataFrame:
 
 
 @answer_space_registry.register(AvailableDatasets.VQA_V2_SAMPLE)
-class VqaV2SampleAnswerSpace(AnswerSpace):
+class VqaV2SampleAnswerSpace(PandasAnswerSpace):
     """
     The VQA V2 sample answers space.
 
@@ -109,89 +109,13 @@ class VqaV2SampleAnswerSpace(AnswerSpace):
     and vice versa.
     """
 
-    def __init__(self):
-        """
-        Initialize the VQA V2 sample answers space.
-
-        It loads the answers space from the file.
-        """
-        self._answers_space = None
-
-    def _add_fake_answer(self):
-        """
-        Add a fake answer to the answers space.
-
-        It is needed for the evaluation of the VQA V2 sample dataset.
-        """
-        self._answers_space = self.answers_space.append(
-            {"answer": self._ANSWER_NOT_FOUND},
-            ignore_index=True,
-        )
-
-    @staticmethod
-    def _do_load_answers_space() -> pd.DataFrame:
+    def _do_load_answers_space(self) -> pd.DataFrame:
         """
         Load the answers space.
 
         :return: The answers space.
         """
         return load_vqa_v2_sample_answers_space()
-
-    @property
-    def answers_space(self) -> pd.DataFrame:
-        """
-        Get the answers space.
-
-        Lazy loads the answers space from the file.
-
-        :return: The answers space.
-        """
-        if self._answers_space is None:
-            self._answers_space = self._do_load_answers_space()
-            self._add_fake_answer()
-        return self._answers_space
-
-    def __len__(self):
-        """
-        Get the number of answers in the answers space.
-
-        :return: The number of answers in the answers space.
-        """
-        return len(self.answers_space)
-
-    def answer_id_to_answer(self, answer_id):
-        """
-        Convert the answer id to the answer.
-
-        :param answer_id: The answer id.
-        :return: The answer.
-        """
-        try:
-            return self.answers_space["answer"].iloc[answer_id]
-        except IndexError:
-            return self._ANSWER_NOT_FOUND
-
-    def __get_answer_id(self, answer):
-        """
-        Get the answer ID.
-
-        :param answer: a given answer
-        :return: The ID of the answer in the processed dataset
-        """
-        return self.answers_space[self.answers_space["answer"] == answer].index[0]
-
-    def answer_to_answer_id(self, answer):
-        """
-        Convert the answer to the answer id.
-
-        :param answer: The answer.
-        :return: The answer id.
-        """
-        answer = self.clean_answer(answer)
-        try:
-            return self.__get_answer_id(answer)
-        except IndexError:
-            return self.__get_answer_id(self._ANSWER_NOT_FOUND)
 
 
 @answer_space_registry.register(AvailableDatasets.VQA_V2)
@@ -203,8 +127,7 @@ class VqaV2AnswerSpace(VqaV2SampleAnswerSpace):
     and vice versa.
     """
 
-    @staticmethod
-    def _do_load_answers_space() -> pd.DataFrame:
+    def _do_load_answers_space(self) -> pd.DataFrame:
         """
         Load the answers space.
 
@@ -214,28 +137,32 @@ class VqaV2AnswerSpace(VqaV2SampleAnswerSpace):
 
 
 @datasets_registry.register(AvailableDatasets.VQA_V2_SAMPLE)
-def load_vqa_v2_sample_datasets() -> tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]:
+def load_vqa_v2_sample_datasets() -> datasets.DatasetDict:
     """
     Load the VQA V2 sample datasets.
 
     :return: The VQA V2 sample datasets.
     """
-    return (
-        load_vqa_v2_sample_train_dataset(),
-        load_vqa_v2_sample_val_dataset(),
-        load_vqa_v2_sample_test_dataset(),
+    return datasets.DatasetDict(
+        {
+            datasets.Split.TRAIN: load_vqa_v2_sample_train_dataset(),
+            datasets.Split.VALIDATION: load_vqa_v2_sample_val_dataset(),
+            datasets.Split.TEST: load_vqa_v2_sample_test_dataset(),
+        }
     )
 
 
 @datasets_registry.register(AvailableDatasets.VQA_V2)
-def load_vqa_v2_datasets() -> tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]:
+def load_vqa_v2_datasets() -> datasets.DatasetDict:
     """
     Load the VQA V2 datasets.
 
     :return: The VQA V2 datasets.
     """
-    return (
-        load_vqa_v2("train"),
-        load_vqa_v2("validation"),
-        load_vqa_v2("test"),
+    return datasets.DatasetDict(
+        {
+            datasets.Split.TRAIN: load_vqa_v2("train"),
+            datasets.Split.VALIDATION: load_vqa_v2("validation"),
+            datasets.Split.TEST: load_vqa_v2("test"),
+        }
     )

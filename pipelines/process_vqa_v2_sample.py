@@ -23,6 +23,50 @@ from utils.datasets.vqa_v2 import (
 logger = logging.getLogger(__name__)
 
 
+def _extract_multiple_choice_answers(dataset: datasets.Dataset) -> pd.Series:
+    """
+    Extract the multiple choice answers from the dataset.
+
+    :param dataset: The dataset.
+    :return: The multiple choice answers.
+    """
+    return pd.Series(
+        dataset["multiple_choice_answer"],
+    )
+
+
+def _extract_alternative_answers(dataset: datasets.Dataset) -> pd.Series:
+    """
+    Extract the alternative answers from the dataset.
+
+    :param dataset: The dataset.
+    :return: The alternative answers.
+    """
+    return pd.Series(itertools.chain.from_iterable(dataset["answers"]))
+
+
+def _get_alternative_answers_if_needed(dataset: datasets.Dataset) -> pd.Series:
+    """
+    Get the alternative answers if needed.
+
+    :param dataset: The dataset.
+    :return: The alternative answers if needed.
+    """
+    return _extract_alternative_answers(dataset) if include_alternative_answers() else pd.Series()
+
+
+def include_alternative_answers() -> bool:
+    """
+    Return whether to include alternative answers.
+
+    :return: Whether to include alternative answers.
+    """
+    import dvc.api
+
+    params = dvc.api.params_show()
+    return params["vqa_v2_sample"]["answers_space"]["include_alternative_answers"]
+
+
 def get_answers_space(
     train_data: datasets.Dataset,
     val_data: datasets.Dataset,
@@ -40,17 +84,17 @@ def get_answers_space(
     answers = pd.DataFrame(
         pd.concat(
             [
-                pd.Series(
-                    train_data["multiple_choice_answer"],
+                _extract_multiple_choice_answers(train_data),
+                _extract_multiple_choice_answers(val_data),
+                _extract_multiple_choice_answers(test_data),
+                *(
+                    (
+                        _get_alternative_answers_if_needed(train_data),
+                        _get_alternative_answers_if_needed(val_data),
+                    )
+                    if include_alternative_answers()
+                    else ()
                 ),
-                pd.Series(
-                    val_data["multiple_choice_answer"],
-                ),
-                pd.Series(
-                    test_data["multiple_choice_answer"],
-                ),
-                pd.Series(itertools.chain.from_iterable(train_data["answers"])),
-                pd.Series(itertools.chain.from_iterable(val_data["answers"])),
             ]
         ).unique(),
         columns=["answer"],

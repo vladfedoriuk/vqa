@@ -25,8 +25,7 @@ def flatten_multiple_answers(
         .str.strip()
         .str.lower()
     )
-    flattened_data["answer"] = split_answers.str.strip()
-    flattened_data["answer"] = flattened_data["answer"].str.lower()
+    flattened_data.loc[:, "answer"] = split_answers
     flattened_data = flattened_data[flattened_data["answer"] != ""]
     flattened_data.reset_index(drop=True, inplace=True)
     return flattened_data

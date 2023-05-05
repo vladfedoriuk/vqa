@@ -43,6 +43,12 @@ elif [[ $1 == "jupyter" ]]; then
       && echo "Jupyter submitted" \
       && squeue -u "$USER"
 EOL
+elif [[ $1 == "sync" ]]; then
+    echo "Copying the .env.prod file to .env"
+    ssh -T $_REMOTE << 'EOL'
+      cd $HOME/vqa \
+      && cp .env.prod .env
+EOL
 else
   echo "Usage: $0 [experiment|jupyter]"
   exit 1

@@ -50,9 +50,10 @@ class AvailableDatasets(str, RegistryKey):
 
     VQA_V2_SAMPLE = "vqa_v2_sample"
     VQA_V2 = "vqa_v2"
+    DAQUAR = "daquar"
 
 
-DatasetsLoadingFunctionType = Callable[[], tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]]
+DatasetsLoadingFunctionType = Callable[[], datasets.DatasetDict[datasets.Split, datasets.Dataset]]
 
 
 class DatasetsRegistry(Registry[AvailableDatasets, DatasetsLoadingFunctionType]):
@@ -61,6 +62,7 @@ class DatasetsRegistry(Registry[AvailableDatasets, DatasetsLoadingFunctionType])
     @classmethod
     def initialize(cls) -> None:
         """Initialize the datasets loading functions."""
+        from utils.datasets.daquar import load_daquar_datasets  # noqa: F401s
         from utils.datasets.vqa_v2 import (  # noqa: F401
             load_vqa_v2_datasets,
             load_vqa_v2_sample_datasets,

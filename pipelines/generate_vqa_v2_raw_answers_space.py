@@ -31,7 +31,7 @@ def _extract_multiple_choice_answers(dataset: datasets.Dataset) -> pd.Series:
     )
 
 
-def _extract_answers(dataset: datasets.Dataset) -> pd.Series:
+def _extract_alternative_answers(dataset: datasets.Dataset) -> pd.Series:
     """
     Extract the answers from the dataset.
 
@@ -56,6 +56,38 @@ def _get_datasets() -> tuple[datasets.Dataset, datasets.Dataset, datasets.Datase
     )
 
 
+def include_alternative_answers() -> bool:
+    """
+    Return whether to include alternative answers.
+
+    :return: Whether to include alternative answers.
+    """
+    import dvc.api
+
+    params = dvc.api.params_show()
+    return params["vqa_v2"]["answers_space"]["raw"]["include_alternative_answers"]
+
+
+def _get_alternative_answers_if_needed(
+    datasets_: tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]
+) -> tuple[pd.Series, pd.Series]:
+    """
+    Get the alternative answers if needed.
+
+    :param datasets_: The VQA V2 datasets.
+    :return: The alternative answers if needed.
+    """
+    train_data, val_data, _ = datasets_
+    return (
+        (
+            _extract_alternative_answers(train_data),
+            _extract_alternative_answers(val_data),
+        )
+        if include_alternative_answers()
+        else ()
+    )
+
+
 def create_raw_answers_space(datasets_: tuple[datasets.Dataset, datasets.Dataset, datasets.Dataset]) -> pd.DataFrame:
     """
     Create the raw answers space for the VQA V2 dataset.
@@ -70,8 +102,7 @@ def create_raw_answers_space(datasets_: tuple[datasets.Dataset, datasets.Dataset
                 _extract_multiple_choice_answers(train_data),
                 _extract_multiple_choice_answers(val_data),
                 _extract_multiple_choice_answers(test_data),
-                _extract_answers(train_data),
-                _extract_answers(val_data),
+                *_get_alternative_answers_if_needed(datasets_),
             ]
         ).unique(),
         columns=["answer"],
@@ -100,15 +131,22 @@ def copy_example_raw_answers_space():
         copyfileobj(example_raw_answers_space_f, raw_answers_space_f)
 
 
-def main():
-    """Generate the raw answers space for the VQA V2 dataset."""
+def copy_example_raw_answers_space_if_needed() -> bool:
+    """Copy an example raw answers space for the VQA V2 dataset if needed."""
     import dvc.api
 
     params = dvc.api.params_show()
-    if params["vqa_v2"]["answers_space"]["raw"]["copy_example"]:
-        logger.info("Skipping the generation of the raw answers space for the VQA V2 dataset...")
-        logger.info("Copying a sample raw answers space for the VQA V2 dataset...")
+
+    to_copy = params["vqa_v2"]["answers_space"]["raw"]["copy_example"]
+    if to_copy:
         copy_example_raw_answers_space()
+    return to_copy
+
+
+def main():
+    """Generate the raw answers space for the VQA V2 dataset."""
+    if copy_example_raw_answers_space_if_needed():
+        logger.info("Skipping the generation of the raw answers space for the VQA V2 dataset...")
         logger.info("Done!")
         return
 

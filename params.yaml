@@ -2,3 +2,7 @@ vqa_v2:
   answers_space:
     raw:
       copy_example: true
+      include_alternative_answers: false
+vqa_v2_sample:
+  answers_space:
+    include_alternative_answers: false

@@ -22,7 +22,12 @@ def get_raw_answers_space() -> pd.DataFrame:
 
 def _clean_answers_space(answers_space: pd.DataFrame) -> pd.DataFrame:
     """Return the cleaned answers space."""
-    return flatten_multiple_answers(answers_space).rename_axis("answer_id").reset_index()
+    return (
+        flatten_multiple_answers(answers_space)
+        .drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+        .rename_axis("answer_id")
+        .reset_index()
+    )
 
 
 def save_answers_space(answers_space: pd.DataFrame):

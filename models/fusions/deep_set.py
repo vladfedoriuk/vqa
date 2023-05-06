@@ -109,10 +109,6 @@ class DeepSetTransformerFusionModel(BaseFusionModel):
                 out_dim=self.final_representation_size,
                 normalization=nn.BatchNorm1d,
             ),
-            apply_attention=False,
-            attention_dim=None,
-            modality_normalize=True,
-            use_auto_mapping=False,
             num_transformer_layers=1,
         )
         self._initialize_weights()

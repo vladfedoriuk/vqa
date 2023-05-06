@@ -98,7 +98,7 @@ def get_answers_space(
             ]
         ).unique(),
         columns=["answer"],
-    )
+    ).drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
     # Split the answers containing multiple answers into multiple rows.
     return flatten_multiple_answers(answers).rename_axis("answer_id").reset_index()
 

@@ -120,7 +120,12 @@ class PandasAnswerSpace(AnswerSpace):
         :return: The answers space.
         """
         if self._answers_space is None:
-            self._answers_space = self._do_load_answers_space()
+            self._answers_space = (
+                self._do_load_answers_space()
+                .drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+                .rename_axis("answer_id")
+                .reset_index()
+            )
             self._add_fake_answer()
         return self._answers_space
 

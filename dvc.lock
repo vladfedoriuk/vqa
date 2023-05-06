@@ -33,8 +33,8 @@ stages:
     cmd: PYTHONPATH=. python pipelines/process_vqa_v2_sample.py
     deps:
     - path: pipelines/process_vqa_v2_sample.py
-      md5: f402ece314ee2d2a6962cbcc8f217fd2
-      size: 3973
+      md5: 5bdb52388a9a05991caa41c6dca3eb4a
+      size: 4041
     params:
       params.yaml:
         vqa_v2_sample.answers_space.include_alternative_answers: false
@@ -66,9 +66,9 @@ stages:
       md5: 3ca2c6472c2b2161a34e5a03a7815d70
       size: 10548076
     - path: pipelines/process_vqa_v2.py
-      md5: 0783b3c054a769724b46484831b72317
-      size: 1323
+      md5: de26ec4d0d7f8f4f87dc88b4b3cfb84a
+      size: 1434
     outs:
     - path: data/processed/vqa_v2/vqa_v2_answers_space.json
-      md5: 7d7e1cc5157486938b0723ed2f64401f
-      size: 11542913
+      md5: dabf6d83f31842ac152acf6a6bdedcf8
+      size: 9541940

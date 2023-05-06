@@ -69,6 +69,7 @@ class MultiModalClassificationModule(pl.LightningModule):
         :param batch: The batch.
         :return: The embeddings.
         """
+        # TODO: Create a type for batch
         return {
             "image_emb": (
                 self.image_encoder_config.get_image_representation_from_preprocessed(

@@ -586,7 +586,7 @@ voluptuous==0.13.1
     # via
     #   dvc
     #   dvc-studio-client
-wandb==0.13.10
+wandb==0.15.2
     # via vqa (pyproject.toml)
 watchfiles==0.18.1
     # via uvicorn

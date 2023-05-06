@@ -29,9 +29,7 @@ make
 cp .env.template .env
 ```
 - Replace the `...` with corresponding values.
-- To export environment variables one can use a command like this:
-```shell
-export $(grep -v '^#' .env | xargs -0)
+
 ```
 ### Working on server
 - To copy a directory from local host to a remote host via SCP (example):

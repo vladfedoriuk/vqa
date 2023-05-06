@@ -26,7 +26,7 @@ if [[ $1 == "experiment" ]]; then
    ssh -T $_REMOTE << 'EOL'
     cd $HOME/vqa \
     && cp .env.prod .env \
-    && export "$(grep -v '^#' .env | xargs -0)" \
+    && source .env \
     && cd scripts \
     && sbatch run-experiment.sh \
     && echo "Experiment submitted" \
@@ -37,7 +37,7 @@ elif [[ $1 == "jupyter" ]]; then
     ssh -T $_REMOTE << 'EOL'
       cd $HOME/vqa \
       && cp .env.prod .env \
-      && export "$(grep -v '^#' .env | xargs -0)" \
+      && source .env \
       && cd scripts \
       && sbatch run-jupyter.sh \
       && echo "Jupyter submitted" \

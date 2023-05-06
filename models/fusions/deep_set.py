@@ -42,18 +42,21 @@ class DeepSetFusionModel(BaseFusionModel):
             text_representation_size=text_representation_size,
             final_representation_size=final_representation_size,
         )
+        channel_to_encoder_dim = {
+            "image": self.image_representation_size,
+            "text": self.text_representation_size,
+        }
         self.deep_set_fusion = DeepsetFusionModule(
-            channel_to_encoder_dim={
-                "image": self.image_representation_size,
-                "text": self.text_representation_size,
-            },
+            channel_to_encoder_dim=channel_to_encoder_dim,
             mlp=MLP(
-                in_dim=self.final_representation_size,
+                in_dim=DeepsetFusionModule.get_projection_dim(
+                    channel_to_encoder_dim=channel_to_encoder_dim,
+                    use_auto_mapping=False,
+                ),
                 out_dim=self.final_representation_size,
                 normalization=nn.BatchNorm1d,
             ),
             pooling_function=torch.sum,
-            modality_normalize=True,
             apply_attention=True,
         )
         self._initialize_weights()
@@ -99,13 +102,16 @@ class DeepSetTransformerFusionModel(BaseFusionModel):
         # Note that the number of attention heads should be a factor of the representation size
         # https://discuss.pytorch.org/t/embed-dim-must-be-divisible-by-num-heads/54394
         # https://stackoverflow.com/questions/66389707/why-embed-dimemsion-must-be-divisible-by-num-of-heads-in-multiheadattention
+        channel_to_encoder_dim = {
+            "image": self.image_representation_size,
+            "text": self.text_representation_size,
+        }
         self.deep_set_fusion = deepset_transformer(
-            channel_to_encoder_dim={
-                "image": self.image_representation_size,
-                "text": self.text_representation_size,
-            },
+            channel_to_encoder_dim=channel_to_encoder_dim,
             mlp=MLP(
-                in_dim=self.final_representation_size,
+                in_dim=DeepsetFusionModule.get_projection_dim(
+                    channel_to_encoder_dim=channel_to_encoder_dim, use_auto_mapping=False
+                ),
                 out_dim=self.final_representation_size,
                 normalization=nn.BatchNorm1d,
             ),

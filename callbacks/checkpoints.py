@@ -17,8 +17,9 @@ from utils.torch import backbone_name_to_kebab_case
 
 
 def get_model_checkpoint(
-    image_encoder: AvailableBackbones,
-    text_encoder: AvailableBackbones,
+    image_encoder: AvailableBackbones | None,
+    text_encoder: AvailableBackbones | None,
+    multimodal_encoder: AvailableBackbones | None,
     fusion: AvailableFusionModels,
     dataset: AvailableDatasets,
 ) -> ModelCheckpoint:
@@ -27,6 +28,7 @@ def get_model_checkpoint(
 
     :param image_encoder: The name of the backbone image model
     :param text_encoder: The name of the backbone text model
+    :param multimodal_encoder: The name of the backbone multimodal model
     :param fusion: The name of the fusion model
     :param dataset: The name of the dataset
     :return: The model checkpoint.
@@ -37,10 +39,12 @@ def get_model_checkpoint(
         mode="min",
         filename=(
             f"{backbone_name_to_kebab_case(image_encoder.value)}-"
-            f"{backbone_name_to_kebab_case(text_encoder.value)}-"
-            f"{fusion.value}-"
-            f"{dataset.value}-"
-            "{epoch:02d}-{val_loss:.2f}"
+            if image_encoder
+            else "" f"{backbone_name_to_kebab_case(text_encoder.value)}-"
+            if text_encoder
+            else "" f"{backbone_name_to_kebab_case(multimodal_encoder.value)}-"
+            if multimodal_encoder
+            else "" f"{fusion.value}-" f"{dataset.value}-" "{epoch:02d}-{val_loss:.2f}"
         ),
         save_top_k=1,
         every_n_epochs=1,

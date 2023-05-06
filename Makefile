@@ -29,10 +29,10 @@ requirements-dev: requirements-base # Compile dev requirements
 requirements: requirements-base requirements-dev
 .PHONY: requirements
 
-_upgrade-pip: # Upgrade pip
-	python -m pip install --upgrade pip
+_install-compatible-pip-version: # Install a compatible pip version
+	python -m pip install pip==22.3.1 --upgrade
 
-upgrade-base: _upgrade-pip # Upgrade base requirements
+upgrade-base: _install-compatible-pip-version # Upgrade base requirements
 	python -m piptools compile \
 	-v \
 	--upgrade \

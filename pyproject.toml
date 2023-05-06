@@ -40,7 +40,7 @@ dependencies = [
     "wandb",
     "scikit-learn",
     "lightning",
-    "torchmultimodal-nightly",
+    "torchmultimodal-nightly"
 ]
 
 [project.urls]

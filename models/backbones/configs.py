@@ -9,6 +9,8 @@ from transformers import (
     BatchEncoding,
     BatchFeature,
     BeitModel,
+    CLIPModel,
+    CLIPProcessor,
     DeiTModel,
 )
 
@@ -241,3 +243,69 @@ class ALBERTConfig(TextEncoderLastHiddenStateMixin, BackboneConfig):
     def get_text_representation_size(cls) -> int:
         """Get the text representation size."""
         return 768
+
+
+@registry.register(AvailableBackbones.CLIP)
+@dataclasses.dataclass(frozen=True)
+class CLIPConfig(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
+    """CLIP is a transformer-based model."""
+
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+
+    @classmethod
+    def get_processor(cls):
+        """Get the processor."""
+        return CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+    @classmethod
+    def get_tokenizer(cls):
+        """Get the tokenizer."""
+        return cls.get_processor()
+
+    @classmethod
+    def get_image_processor(cls):
+        """Get the image processor."""
+        return cls.get_processor()
+
+    @classmethod
+    def get_representation_size(cls) -> int:
+        """Get the representation size."""
+        return 512
+
+    @classmethod
+    def get_text_representation_size(cls) -> int:
+        """Get the text representation size."""
+        return cls.get_representation_size()
+
+    @classmethod
+    def get_image_representation_size(cls) -> int:
+        """Get the image representation size."""
+        return cls.get_representation_size()
+
+    @classmethod
+    def get_text_representation_from_tokenized(
+        cls,
+        model: torch.nn.Module,
+        tokenizer_output: BatchEncoding,
+    ) -> torch.Tensor:
+        """Get the text representation."""
+        # TODO use processor_output instead of tokenizer_output everywhere
+        return model(
+            input_ids=tokenizer_output["input_ids"],
+            attention_mask=tokenizer_output["attention_mask"],
+            pixel_values=tokenizer_output["pixel_values"],
+        ).text_embeds
+
+    @classmethod
+    def get_image_representation_from_preprocessed(
+        cls, model: torch.nn.Module, processor_output: BatchFeature
+    ) -> torch.Tensor:
+        """Get the image representation."""
+        return model(
+            input_ids=processor_output["input_ids"],
+            attention_mask=processor_output["attention_mask"],
+            pixel_values=processor_output["pixel_values"],
+        ).image_embeds

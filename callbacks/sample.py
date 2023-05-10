@@ -17,7 +17,8 @@ from loggers.wandb import (
     log_daquar_predictions_as_table,
     log_vqa_v2_predictions_as_table,
 )
-from utils.datasets import AvailableDatasets, convert_batch_to_list_of_dicts
+from utils.batch import convert_batch_to_list_of_dicts
+from utils.datasets import AvailableDatasets
 from utils.datasets.answer_space import AnswerSpace
 
 
@@ -59,8 +60,6 @@ class PredictionSamplesCallback(Callback):
         :param batch: The batch.
         :return: The number of samples to log.
         """
-        if len(batch) < self.num_samples:
-            return batch
         return torch.randperm(len(batch))[: self.num_samples]
 
     def _prepare_batch_subset(self, batch):

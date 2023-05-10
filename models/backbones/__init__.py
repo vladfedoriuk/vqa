@@ -28,7 +28,7 @@ class AvailableBackbones(str, RegistryKey):
     ALBERT = "albert-base-v2"
 
     # Multi-modal backbones
-    CLIP = "openai/clip-vit-base-patch32"
+    CLIP = "openai/clip-vit-base-patch16"
 
     @classproperty
     def image_backbones(cls) -> tuple["AvailableBackbones", ...]:
@@ -105,7 +105,7 @@ class BackboneConfig:
         raise NotImplementedError
 
     @classmethod
-    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
         """Get the tokenized text."""
         raise NotImplementedError
 
@@ -115,7 +115,9 @@ class BackboneConfig:
         raise NotImplementedError
 
     @classmethod
-    def get_text_representation(cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str) -> torch.Tensor:
+    def get_text_representation(
+        cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str | list[str]
+    ) -> torch.Tensor:
         """Get the text representation."""
         raise NotImplementedError
 
@@ -159,7 +161,7 @@ class TextEncoderMixin:
     """The text encoder mixin."""
 
     @classmethod
-    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str) -> BatchEncoding:
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
         """Get the tokenized text."""
         return tokenizer(
             text=text,
@@ -180,7 +182,9 @@ class TextEncoderMixin:
         return model(**tokenizer_output).pooler_output
 
     @classmethod
-    def get_text_representation(cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str) -> torch.Tensor:
+    def get_text_representation(
+        cls, model: torch.nn.Module, tokenizer: PreTrainedTokenizer, text: str | list[str]
+    ) -> torch.Tensor:
         """Get the text representation."""
         return cls.get_text_representation_from_tokenized(
             model=model,
@@ -203,9 +207,9 @@ registry: Final[BackbonesRegistry] = BackbonesRegistry()
 class BackbonesConfigs(TypedDict, total=False):
     """The backbones configs."""
 
-    image_backbone: AvailableBackbones
-    text_backbone: AvailableBackbones
-    multimodal_backbone: AvailableBackbones
+    image_backbone: AvailableBackbones | None
+    text_backbone: AvailableBackbones | None
+    multimodal_backbone: AvailableBackbones | None
 
 
 class BackbonesConfigValues(TypedDict, total=False):

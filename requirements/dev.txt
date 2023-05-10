@@ -4,6 +4,8 @@
 #
 #    pip-compile --extra=dev --output-file=requirements/dev.txt pyproject.toml
 #
+accelerate==0.18.0
+    # via kornia
 aiohttp==3.8.4
     # via
     #   aiohttp-retry
@@ -63,6 +65,7 @@ backcall==0.2.0
     # via ipython
 beautifulsoup4==4.11.2
     # via
+    #   gdown
     #   lightning
     #   nbconvert
 billiard==3.6.4.0
@@ -105,7 +108,9 @@ click==8.1.3
     #   click-repl
     #   lightning
     #   lightning-cloud
+    #   nltk
     #   pip-tools
+    #   sacremoses
     #   typer
     #   uvicorn
     #   wandb
@@ -206,6 +211,7 @@ fastjsonschema==2.16.3
 filelock==3.9.0
     # via
     #   blobfile
+    #   gdown
     #   huggingface-hub
     #   iterative-telemetry
     #   transformers
@@ -259,6 +265,8 @@ funcy==1.18
     #   dvc-objects
     #   dvc-task
     #   scmrepo
+gdown==4.7.1
+    # via nlpaug
 gitdb==4.0.10
     # via gitpython
 gitpython==3.1.31
@@ -344,7 +352,10 @@ jinja2==3.1.2
     #   nbconvert
     #   notebook
 joblib==1.2.0
-    # via scikit-learn
+    # via
+    #   nltk
+    #   sacremoses
+    #   scikit-learn
 jsonpointer==2.3
     # via jsonschema
 jsonschema[format-nongpl]==4.17.3
@@ -394,6 +405,8 @@ kombu==5.2.4
     # via
     #   celery
     #   dvc-task
+kornia[x]==0.6.12
+    # via vqa (pyproject.toml)
 lightning==2.0.0
     # via vqa (pyproject.toml)
 lightning-cloud==0.5.31
@@ -456,6 +469,10 @@ nest-asyncio==1.5.6
     #   notebook
 networkx==3.0
     # via dvc
+nlpaug==1.1.11
+    # via vqa (pyproject.toml)
+nltk==3.8.1
+    # via vqa (pyproject.toml)
 nodeenv==1.7.0
     # via pre-commit
 notebook==6.5.2
@@ -464,11 +481,13 @@ notebook-shim==0.2.2
     # via nbclassic
 numpy==1.24.2
     # via
+    #   accelerate
     #   contourpy
     #   dall-e
     #   datasets
     #   lightning
     #   matplotlib
+    #   nlpaug
     #   pandas
     #   pyarrow
     #   pytorch-lightning
@@ -497,6 +516,7 @@ orjson==3.8.7
     #   sqltrie
 packaging==23.0
     # via
+    #   accelerate
     #   black
     #   build
     #   datasets
@@ -505,6 +525,7 @@ packaging==23.0
     #   hydra-core
     #   ipykernel
     #   jupyter-server
+    #   kornia
     #   lightning
     #   lightning-utilities
     #   matplotlib
@@ -517,6 +538,7 @@ packaging==23.0
 pandas==1.5.3
     # via
     #   datasets
+    #   nlpaug
     #   vqa (pyproject.toml)
 pandocfilters==1.5.0
     # via nbconvert
@@ -568,6 +590,7 @@ protobuf==3.20.3
     # via wandb
 psutil==5.9.4
     # via
+    #   accelerate
     #   dvc
     #   flufl-lock
     #   ipykernel
@@ -628,6 +651,8 @@ pyproject-hooks==1.0.0
     # via build
 pyrsistent==0.19.3
     # via jsonschema
+pysocks==1.7.1
+    # via requests
 pytest==7.3.1
     # via dall-e
 python-dateutil==2.8.2
@@ -657,6 +682,7 @@ pytz==2022.7.1
     #   pandas
 pyyaml==6.0
     # via
+    #   accelerate
     #   datasets
     #   fastapi
     #   huggingface-hub
@@ -685,21 +711,27 @@ qtpy==2.3.0
 readchar==4.0.5
     # via inquirer
 regex==2022.10.31
-    # via transformers
-requests==2.28.2
+    # via
+    #   nltk
+    #   sacremoses
+    #   transformers
+requests[socks]==2.28.2
     # via
     #   dall-e
     #   datasets
     #   dvc
     #   dvc-studio-client
     #   fsspec
+    #   gdown
     #   huggingface-hub
     #   iterative-telemetry
     #   lightning
     #   lightning-cloud
+    #   nlpaug
     #   responses
     #   torchvision
     #   transformers
+    #   vqa (pyproject.toml)
     #   wandb
 responses==0.18.0
     # via datasets
@@ -723,6 +755,8 @@ ruamel-yaml==0.17.21
     # via dvc
 ruamel-yaml-clib==0.2.7
     # via ruamel-yaml
+sacremoses==0.0.53
+    # via vqa (pyproject.toml)
 scikit-learn==1.2.1
     # via vqa (pyproject.toml)
 scipy==1.10.1
@@ -736,6 +770,8 @@ send2trash==1.8.0
     #   jupyter-server
     #   nbclassic
     #   notebook
+sentencepiece==0.1.99
+    # via vqa (pyproject.toml)
 sentry-sdk==1.16.0
     # via wandb
 setproctitle==1.3.2
@@ -760,9 +796,11 @@ six==1.16.0
     #   configobj
     #   docker-pycreds
     #   flatten-dict
+    #   gdown
     #   lightning-cloud
     #   python-dateutil
     #   rfc3339-validator
+    #   sacremoses
 smmap==5.0.0
     # via gitdb
 sniffio==1.3.0
@@ -819,7 +857,9 @@ tomlkit==0.11.6
     # via dvc
 torch==1.13.1
     # via
+    #   accelerate
     #   dall-e
+    #   kornia
     #   lightning
     #   pytorch-lightning
     #   timm
@@ -850,10 +890,13 @@ tqdm==4.65.0
     #   datasets
     #   dvc
     #   dvc-objects
+    #   gdown
     #   huggingface-hub
     #   iopath
     #   lightning
+    #   nltk
     #   pytorch-lightning
+    #   sacremoses
     #   transformers
 traitlets==5.9.0
     # via
@@ -921,7 +964,7 @@ voluptuous==0.13.1
     # via
     #   dvc
     #   dvc-studio-client
-wandb==0.13.10
+wandb==0.15.2
     # via vqa (pyproject.toml)
 watchfiles==0.18.1
     # via uvicorn

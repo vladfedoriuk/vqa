@@ -1,13 +1,14 @@
 """No-op transform."""
-import PIL.Image
-import torch
+from typing import TypeVar
+
+DataType = TypeVar("DataType")
 
 
-def noop(image: PIL.Image.Image | torch.Tensor):
+def noop(data: DataType) -> DataType:
     """
     No-op transform.
 
-    :param image: The image to transform.
-    :return: The same image.
+    :param data: Any data.
+    :return: The same data.
     """
-    return image
+    return data

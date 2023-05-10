@@ -10,42 +10,22 @@ https://lightning.ai/docs/pytorch/stable/common/checkpointing_intermediate.html
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 from config.env import SAVE_ARTIFACTS_PATH
-from models.backbones import AvailableBackbones
-from models.fusions import AvailableFusionModels
-from utils.datasets import AvailableDatasets
-from utils.torch import backbone_name_to_kebab_case
 
 
 def get_model_checkpoint(
-    image_encoder: AvailableBackbones | None,
-    text_encoder: AvailableBackbones | None,
-    multimodal_encoder: AvailableBackbones | None,
-    fusion: AvailableFusionModels,
-    dataset: AvailableDatasets,
+    file_name: str,
 ) -> ModelCheckpoint:
     """
     Get the model checkpoint.
 
-    :param image_encoder: The name of the backbone image model
-    :param text_encoder: The name of the backbone text model
-    :param multimodal_encoder: The name of the backbone multimodal model
-    :param fusion: The name of the fusion model
-    :param dataset: The name of the dataset
+    :param file_name: The name of the file to save the model checkpoint to.
     :return: The model checkpoint.
     """
     return ModelCheckpoint(
         dirpath=SAVE_ARTIFACTS_PATH,
         monitor="val_loss",
         mode="min",
-        filename=(
-            f"{backbone_name_to_kebab_case(image_encoder.value)}-"
-            if image_encoder
-            else "" f"{backbone_name_to_kebab_case(text_encoder.value)}-"
-            if text_encoder
-            else "" f"{backbone_name_to_kebab_case(multimodal_encoder.value)}-"
-            if multimodal_encoder
-            else "" f"{fusion.value}-" f"{dataset.value}-" "{epoch:02d}-{val_loss:.2f}"
-        ),
         save_top_k=1,
         every_n_epochs=1,
+        filename=file_name,
     )

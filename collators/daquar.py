@@ -32,16 +32,16 @@ class DaquarCollator(VQACollatorMixin, ClassificationCollator):
         :param batch: The batch.
         :return: The image features.
         """
+        # TODO: do we really need squeeze_dict_of_tensors and expand_first_dim_dict_of_tensors in collators?
         images = load_images_for_batch(batch)
-        features = squeeze_dict_of_tensors(
-            self.image_encoder_config.get_processed_image(
-                self.image_processor,
-                image=[self.image_transforms(image) for image in images],
-            )
+        features = self.image_encoder_config.get_processed_image(
+            self.image_processor,
+            image=[self.single_image_transforms(image) for image in images],
         )
+        features = squeeze_dict_of_tensors(self.batch_image_transforms(features))
+        features[self.IMAGE_BATCH_PROPERTY] = images
         if self.batch_len(batch) == 1:
             return expand_first_dim_dict_of_tensors(features)
-        features[self.IMAGE_BATCH_PROPERTY] = images
         return features
 
     def get_text_features(self, batch):

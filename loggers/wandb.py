@@ -5,6 +5,10 @@ For more information, see:
 
 - https://docs.wandb.ai/guides/integrations/lightning
 - https://lightning.ai/docs/pytorch/latest/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
+
+For some best practices, see:
+https://wandb.ai/wandb/pytorch-lightning-e2e/reports/W-B-Best-Practices-Guide--VmlldzozNTU1ODY1
+
 """  # noqa: E501
 from functools import lru_cache
 from typing import Any, Literal
@@ -36,7 +40,7 @@ def get_lightning_logger(
     return WandbLogger(
         project=WANDB_PROJECT,
         name=run_name,
-        log_model="all",
+        log_model=False,
     )
 
 

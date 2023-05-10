@@ -1,4 +1,13 @@
-"""The module contains the code to load the DAQUAR dataset."""
+"""
+The module contains the code to load the DAQUAR dataset.
+
+Roughly processed dataset has been downloaded from:
+https://www.kaggle.com/datasets/tezansahu/processed-daquar-dataset?select=data_train.csv
+
+The original dataset can be downloaded from:
+https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/research/vision-and-language/visual-turing-challenge/
+"""  # noqa: E501
+
 import datasets
 import pandas as pd
 from transformers.image_utils import load_image
@@ -18,6 +27,9 @@ def load_daquar() -> datasets.Dataset:
     """
     Load the DAQUAR dataset.
 
+    The dataset is loaded from CSV files in ``data/processed/daquar``.
+    https://huggingface.co/docs/datasets/v2.12.0/en/tabular_load#csv-files
+
     :return: The DAQUAR dataset.
     """
     train_data_file, eval_data_file = PROCESSED_DAQUAR_DATA_FILES
@@ -35,6 +47,9 @@ def _split_validation_dataset(
 ) -> tuple[datasets.Dataset, datasets.Dataset]:
     """
     Split the validation dataset into test and validation datasets.
+
+    To know more about data splitting:
+    https://huggingface.co/docs/datasets/process#split
 
     :param dataset: The validation dataset.
     :return: The test and validation datasets.

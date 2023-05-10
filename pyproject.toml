@@ -40,7 +40,13 @@ dependencies = [
     "wandb",
     "scikit-learn",
     "lightning",
-    "torchmultimodal-nightly"
+    "torchmultimodal-nightly",
+    "requests",
+    "nlpaug",
+    "sentencepiece",
+    "nltk",
+    "sacremoses",
+    "kornia[x]"
 ]
 
 [project.urls]

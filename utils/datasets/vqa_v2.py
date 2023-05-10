@@ -1,4 +1,12 @@
-"""VQA V2 dataset."""
+"""
+VQA V2 dataset.
+
+The dataset page on Hugging Face Datasets is:
+https://huggingface.co/datasets/HuggingFaceM4/VQAv2
+
+Maybe in the future it is worth considering streaming it:
+https://huggingface.co/docs/datasets/stream
+"""
 from functools import lru_cache
 from typing import Literal
 

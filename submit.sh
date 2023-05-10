@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Verify that the first argument is either `experiment`, `jupyter` or `sync`.
+if [[ $# -eq 0 ]] || [[ $1 != "experiment" ]] && [[ $1 != "jupyter" ]] && [[ $1 != "sync" ]]; then
+  echo "Usage: $0 [experiment|jupyter|sync]"
+  exit 1
+fi
+
 # A script to submit an experiment to the cluster.
 _REMOTE=z1158649@gw.gmum
 
@@ -50,6 +56,6 @@ elif [[ $1 == "sync" ]]; then
       && cp .env.prod .env
 EOL
 else
-  echo "Usage: $0 [experiment|jupyter]"
+  echo "Usage: $0 [experiment|jupyter|sync]"
   exit 1
 fi

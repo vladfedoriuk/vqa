@@ -6,17 +6,24 @@ import operator
 from collections.abc import Callable
 from typing import Any, ClassVar, Final, Generic, ParamSpec, TypeVar
 
+import PIL.Image
 import torch
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
 from models.backbones import BackboneConfig
 from transforms.noop import noop
-from utils.datasets import AvailableDatasets, convert_batch_to_dict_of_features
+from utils.batch import convert_batch_to_dict_of_features
+from utils.datasets import AvailableDatasets
 from utils.datasets.answer_space import AnswerSpace
 from utils.registry import Registry
 from utils.torch import squeeze_dict_of_tensors
-from utils.types import SingleImageTransformsType
+from utils.types import (
+    BatchImageTransformsType,
+    BatchTextTransformsType,
+    SingeTextTransformsType,
+    SingleImageTransformsType,
+)
 
 T = TypeVar("T")
 
@@ -29,7 +36,10 @@ class MultiModalCollator(Generic[T], abc.ABC):
     image_processor: BaseImageProcessor
     image_encoder_config: type[BackboneConfig]
     text_encoder_config: type[BackboneConfig]
-    image_transforms: SingleImageTransformsType = dataclasses.field(default_factory=noop)
+    single_image_transforms: SingleImageTransformsType = dataclasses.field(default_factory=noop)
+    single_text_transforms: SingeTextTransformsType = dataclasses.field(default_factory=noop)
+    batch_image_transforms: BatchImageTransformsType = dataclasses.field(default_factory=noop)
+    batch_text_transforms: BatchTextTransformsType = dataclasses.field(default_factory=noop)
 
     @abc.abstractmethod
     def __call__(self, batch: list[T]) -> Any | None:
@@ -107,7 +117,10 @@ class VQACollatorMixin:
     image_processor: BaseImageProcessor
     image_encoder_config: type[BackboneConfig]
     text_encoder_config: type[BackboneConfig]
-    image_transforms: SingleImageTransformsType
+    single_image_transforms: SingleImageTransformsType
+    single_text_transforms: SingeTextTransformsType
+    batch_image_transforms: BatchImageTransformsType
+    batch_text_transforms: BatchTextTransformsType
 
     answer_space: AnswerSpace
 
@@ -144,6 +157,18 @@ class VQACollatorMixin:
 
         return wrapper
 
+    @staticmethod
+    def _ensure_image_is_rgb(image: PIL.Image.Image):
+        """
+        Ensure the image is RGB.
+
+        :param image: The image.
+        :return: The image.
+        """
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        return image
+
     @handle_features_dim
     def get_image_features(self, batch):
         """
@@ -152,9 +177,14 @@ class VQACollatorMixin:
         :param batch: The batch.
         :return: The image features.
         """
-        return self.image_encoder_config.get_processed_image(
-            self.image_processor,
-            image=[self.image_transforms(image.convert("RGB")) for image in batch[self.IMAGE_BATCH_PROPERTY]],
+        return self.batch_image_transforms(
+            self.image_encoder_config.get_processed_image(
+                self.image_processor,
+                image=[
+                    self.single_image_transforms(self._ensure_image_is_rgb(image))
+                    for image in batch[self.IMAGE_BATCH_PROPERTY]
+                ],
+            )
         )
 
     @handle_features_dim
@@ -165,10 +195,11 @@ class VQACollatorMixin:
         :param batch: The batch.
         :return: The text features.
         """
-        return self.text_encoder_config.get_tokenized_text(
-            self.tokenizer,
-            text=batch[self.QUESTION_BATCH_PROPERTY],
-        )
+        batch[self.QUESTION_BATCH_PROPERTY] = [
+            self.single_text_transforms(question) for question in batch[self.QUESTION_BATCH_PROPERTY]
+        ]
+        batch = self.batch_text_transforms(batch)
+        return self.text_encoder_config.get_tokenized_text(self.tokenizer, text=batch[self.QUESTION_BATCH_PROPERTY])
 
 
 class MultiModalCollatorRegistry(Registry[AvailableDatasets, type[MultiModalCollator]]):

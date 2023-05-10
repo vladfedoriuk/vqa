@@ -6,7 +6,6 @@ The package contains the following modules:
 - :mod:`.callbacks` - The callbacks for the experiments (for the Lightning modules - e.g logging).
 - :mod:`.collators` - The collators for the experiments (for the dataloaders).
 - :mod:`.config` - Configuration variables.
-- :mod:`.datamodules` - The datamodules for the experiments (the dataloaders).
 - :mod:`.experiments` - The experiments entrypoints (e.g the fusion architecture).
 - :mod:`.lightningmodules` - The Lightning modules for the experiments (the models).
 - :mod:`.loggers` - The loggers for the experiments (e.g. Weights & Biases).

@@ -10,25 +10,41 @@ from transformers.image_processing_utils import BaseImageProcessor, BatchFeature
 from utils.registry import Registry, RegistryKey
 from utils.types import ImageType
 
+# TODO: Refactor the backbones - use Interface segregation principle
+
 
 class AvailableBackbones(str, RegistryKey):
     """The available backbones."""
 
     # Image backbones
+    # Model from https://huggingface.co/google/vit-base-patch16-224-in21k
     VIT = "google/vit-base-patch16-224-in21k"
+    # Model from https://huggingface.co/facebook/dino-vitb16
     DINO = "facebook/dino-vitb16"
+    # Model from https://huggingface.co/microsoft/beit-base-patch16-224-pt22k
     BEIT = "microsoft/beit-base-patch16-224-pt22k"
+    # Model from https://huggingface.co/facebook/deit-base-distilled-patch16-224
     DEIT = "facebook/deit-base-distilled-patch16-224"
+    # Model from https://huggingface.co/microsoft/resnet-50
     RESNET = "microsoft/resnet-50"
 
     # Text backbones
+    # Model from https://huggingface.co/bert-base-uncased
     BERT = "bert-base-uncased"
+    # Model from https://huggingface.co/distilbert-base-uncased
     DISTILBERT = "distilbert-base-uncased"
+    # Model from https://huggingface.co/roberta-base
     ROBERTA = "roberta-base"
+    # Model from https://huggingface.co/albert-base-v2
     ALBERT = "albert-base-v2"
 
     # Multi-modal backbones
+    # Model from https://huggingface.co/openai/clip-vit-base-patch16
     CLIP = "openai/clip-vit-base-patch16"
+    # Model from https://huggingface.co/dandelin/vilt-b32-mlm
+    ViLT_MLM = "dandelin/vilt-b32-mlm"
+    # Model from https://huggingface.co/dandelin/vilt-b32-finetuned-vqa
+    ViLT_VQA = "dandelin/vilt-b32-finetuned-vqa"
 
     @classproperty
     def image_backbones(cls) -> tuple["AvailableBackbones", ...]:
@@ -54,7 +70,7 @@ class AvailableBackbones(str, RegistryKey):
     @classproperty
     def multimodal_backbones(cls) -> tuple["AvailableBackbones", ...]:
         """Get the multimodal backbones."""
-        return (cls.CLIP,)
+        return cls.CLIP, cls.ViLT_MLM, cls.ViLT_VQA
 
 
 class BackboneConfig:
@@ -128,6 +144,30 @@ class BackboneConfig:
         tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_multimodal_representation_size(cls) -> int:
+        """Get the multimodal representation size."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_multimodal_representation_from_preprocessed(
+        cls, model: torch.nn.Module, processor_output: BatchFeature
+    ) -> torch.Tensor:
+        """Get the multimodal representation."""
+        raise NotImplementedError
+
+    @classmethod
+    def get_multimodal_representation(
+        cls,
+        model: torch.nn.Module,
+        processor: BaseImageProcessor,
+        image: ImageType,
+        tokenizer: PreTrainedTokenizer,
+        text: str | list[str],
+    ) -> torch.Tensor:
+        """Get the multimodal representation."""
         raise NotImplementedError
 
 

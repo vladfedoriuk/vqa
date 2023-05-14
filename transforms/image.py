@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from torchvision import transforms as T
 
+from transforms.noop import Noop
 from utils.batch import batch_to_device
 from utils.types import BatchType
 
@@ -216,3 +217,35 @@ class BatchVQAImageAugmentationModule(nn.Module):
         images = self._handle_images_structure(images)
         batch["pixel_values"] = self.augmentation(images)
         return batch
+
+
+def default_image_batch_transforms_factory():
+    """
+    Create default batch image augmentation transforms.
+
+    :return: The image augmentation transforms.
+    """
+    return nn.ModuleDict(
+        {
+            "fit": BatchVQAImageAugmentationModule(),
+            "validate": Noop(),
+            "test": Noop(),
+            "predict": Noop(),
+        }
+    )
+
+
+def default_image_single_transforms_factory():
+    """
+    Create default single image augmentation transforms.
+
+    :return: The image augmentation transforms.
+    """
+    return nn.ModuleDict(
+        {
+            "fit": SingleVQAImageAugmentationModule(),
+            "validate": Noop(),
+            "test": Noop(),
+            "predict": Noop(),
+        }
+    )

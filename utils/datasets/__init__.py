@@ -33,15 +33,10 @@ class DatasetsRegistry(Registry[AvailableDatasets, DatasetsLoadingFunctionType])
 
 registry: Final[DatasetsRegistry] = DatasetsRegistry()
 
+
 __all__ = [
     "AvailableDatasets",
     "DatasetsLoadingFunctionType",
     "registry",
     "DatasetsRegistry",
 ]
-stage_to_split = {
-    "fit": datasets.Split.TRAIN,
-    "validate": datasets.Split.VALIDATION,
-    "test": datasets.Split.TEST,
-    "predict": datasets.Split.TEST,
-}

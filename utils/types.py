@@ -17,4 +17,5 @@ SingeTextTransformsType = Callable[[str], str]
 BatchImageTransformsType = Callable[[BatchType], BatchType]
 
 BatchTextTransformsType = Callable[[BatchType], BatchType]
+
 StageType = Literal["fit", "validate", "test", "predict"]

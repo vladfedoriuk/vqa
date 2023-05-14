@@ -7,7 +7,7 @@ The package contains the following modules:
 - :mod:`.collators` - The collators for the experiments (for the dataloaders).
 - :mod:`.config` - Configuration variables.
 - :mod:`.experiments` - The experiments entrypoints (e.g the fusion architecture).
-- :mod:`.lightningmodules` - The Lightning modules for the experiments (the models).
+- :mod:`.lightning_modules` - The Lightning modules for the experiments (the models).
 - :mod:`.loggers` - The loggers for the experiments (e.g. Weights & Biases).
 - :mod:`.models` - The models for the experiments (the architectures - e.g. fusion).
 - :mod:`.notebooks` - The notebooks with the experiments.

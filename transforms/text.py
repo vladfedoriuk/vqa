@@ -1,4 +1,5 @@
 """Transforms for text data."""
+from collections.abc import Mapping
 from typing import cast
 
 import torch
@@ -11,7 +12,8 @@ from transformers import (
     PreTrainedTokenizer,
 )
 
-from utils.types import BatchType
+from transforms.noop import Noop
+from utils.types import BatchTextTransformsType, BatchType, StageType
 
 
 class QuestionAugmentationModule(nn.Module):
@@ -85,3 +87,19 @@ class QuestionAugmentationModule(nn.Module):
             top_p=0.95,
         )
         return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
+
+
+def default_text_batch_transforms_factory() -> Mapping[StageType, BatchTextTransformsType]:
+    """
+    Get the default text batch transforms.
+
+    :return: The default text batch transforms.
+    """
+    return nn.ModuleDict(
+        {
+            "fit": QuestionAugmentationModule(),
+            "validate": Noop(),
+            "test": Noop(),
+            "predict": Noop(),
+        }
+    )

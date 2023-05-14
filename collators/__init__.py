@@ -201,6 +201,9 @@ class VQACollatorMixin:
         batch = self.batch_text_transforms(batch)
         return self.text_encoder_config.get_tokenized_text(self.tokenizer, text=batch[self.QUESTION_BATCH_PROPERTY])
 
+    # TODO: override __call__ - use super and e.g. ANSWER_BATCH_PROPERTY to determine if batch is single element
+    # if so, use expand_first_dim_dict_of_tensors
+
 
 class MultiModalCollatorRegistry(Registry[AvailableDatasets, type[MultiModalCollator]]):
     """The multi-modal collator registry."""

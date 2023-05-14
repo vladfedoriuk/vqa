@@ -27,7 +27,7 @@ class PredictionSamplesCallback(Callback):
     The callback to log the classification prediction samples fom the validation set.
 
     The callback is meant to be used with
-    :class:`lightningmodules.classification.MultiModalClassificationModule`.
+    :class:`lightning_modules.classification.MultiModalClassificationModule`.
 
     The callback logs the prediction samples to Weights & Biases.
     """

@@ -1,5 +1,6 @@
 """The backbone configurations."""
 import dataclasses
+from collections.abc import Sequence
 
 import torch
 from transformers import (
@@ -12,7 +13,11 @@ from transformers import (
     CLIPModel,
     CLIPProcessor,
     DeiTModel,
+    PreTrainedTokenizer,
+    ViltModel,
+    ViltProcessor,
 )
+from transformers.image_processing_utils import BaseImageProcessor
 
 from models.backbones import (
     AvailableBackbones,
@@ -21,6 +26,7 @@ from models.backbones import (
     TextEncoderMixin,
     registry,
 )
+from utils.types import ImageType
 
 
 @registry.register(AvailableBackbones.DINO)
@@ -289,14 +295,14 @@ class CLIPConfig(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
     def get_text_representation_from_tokenized(
         cls,
         model: torch.nn.Module,
-        tokenizer_output: BatchEncoding,
+        processor_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
         # TODO use processor_output instead of tokenizer_output everywhere
         return model(
-            input_ids=tokenizer_output["input_ids"],
-            attention_mask=tokenizer_output["attention_mask"],
-            pixel_values=tokenizer_output["pixel_values"],
+            input_ids=processor_output["input_ids"],
+            attention_mask=processor_output["attention_mask"],
+            pixel_values=processor_output["pixel_values"],
         ).text_embeds
 
     @classmethod
@@ -309,3 +315,89 @@ class CLIPConfig(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
             attention_mask=processor_output["attention_mask"],
             pixel_values=processor_output["pixel_values"],
         ).image_embeds
+
+
+@registry.register(AvailableBackbones.ViLT_MLM)
+@dataclasses.dataclass(frozen=True)
+class ViLTMLMConfig(BackboneConfig):
+    """
+    ViLT-MLM is a transformer-based model for multimodal pretraining.
+
+    It was pretrained to predict masked tokens in images and text.
+    """
+
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return ViltModel.from_pretrained("dandelin/vilt-b32-mlm")
+
+    @classmethod
+    def get_processor(cls) -> ViltProcessor:
+        """Get the processor."""
+        return ViltProcessor.from_pretrained("dandelin/vilt-b32-mlm")
+
+    @classmethod
+    def get_multimodal_representation_size(cls) -> int:
+        """Get the multimodal representation size."""
+        return 768
+
+    @classmethod
+    def get_tokenizer(cls):
+        """Get the tokenizer."""
+        return cls.get_processor().tokenizer  # type: ignore
+
+    @classmethod
+    def get_image_processor(cls):
+        """Get the image processor."""
+        return cls.get_processor().image_processor  # type: ignore
+
+    @classmethod
+    def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
+        """Get the image features from processor."""
+        return processor(
+            images=image,
+            return_tensors="pt",
+            do_pad=True,
+        )
+
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
+        """Get the tokenized text."""
+        return tokenizer(
+            text=text,
+            return_tensors="pt",
+            padding="max_length",
+            truncation=True,
+            return_token_type_ids=True,
+            return_attention_mask=True,
+        )
+
+    @classmethod
+    def get_multimodal_representation_from_preprocessed(
+        cls, model: torch.nn.Module, processor_output: BatchFeature
+    ) -> torch.Tensor:
+        """Get the multimodal representation."""
+        return model(
+            input_ids=processor_output["input_ids"],
+            token_type_ids=processor_output["token_type_ids"],
+            attention_mask=processor_output["attention_mask"],
+            pixel_values=processor_output["pixel_values"],
+            pixel_mask=processor_output["pixel_mask"],
+            return_dict=True,
+        ).pooler_output
+
+
+@registry.register(AvailableBackbones.ViLT_VQA)
+@dataclasses.dataclass(frozen=True)
+class ViLTVQAConfig(ViLTMLMConfig):
+    """ViLT finetuned on VQA."""
+
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return ViltModel.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+
+    @classmethod
+    def get_processor(cls) -> ViltProcessor:
+        """Get the processor."""
+        return ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")

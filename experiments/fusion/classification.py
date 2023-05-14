@@ -22,13 +22,12 @@ import lightning.pytorch as pl
 import typer
 import wandb
 from lightning.pytorch.strategies import DDPStrategy
-from lightning.pytorch.tuner import Tuner
 
 from callbacks.checkpoints import get_model_checkpoint
 from callbacks.sample import PredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
-from lightningmodules.classification import MultiModalClassificationModule
+from lightning_modules.fusion.classification import MultiModalFusionClassificationModule
 from loggers.wandb import get_lightning_logger
 from models.backbones import AvailableBackbones, prepare_backbones
 from models.classifiers import default_classifier_factory
@@ -38,7 +37,7 @@ from utils.config import load_env_config
 from utils.datasets import AvailableDatasets
 from utils.datasets import registry as datasets_registry
 from utils.datasets.answer_space import registry as answer_space_registry
-from utils.logger import compose_run_name
+from utils.logger import compose_fusion_classification_experiment_run_name
 from utils.registry import initialize_registries
 from utils.torch import ensure_reproducibility, freeze_model_parameters
 
@@ -106,7 +105,7 @@ def experiment(
         freeze_model_parameters(backbones_data["text_encoder"])
 
     # Initialize the logger.
-    run_name = compose_run_name(
+    run_name = compose_fusion_classification_experiment_run_name(
         image_encoder_backbone=image_encoder_backbone,
         text_encoder_backbone=text_encoder_backbone,
         multimodal_backbone=multimodal_backbone,
@@ -162,7 +161,7 @@ def experiment(
         backbones_data["image_representation_size"],
         backbones_data["text_representation_size"],
     )
-    model = MultiModalClassificationModule(
+    model = MultiModalFusionClassificationModule(
         fusion=fusion_model_factory(
             image_representation_size=backbones_data["image_representation_size"],
             text_representation_size=backbones_data["text_representation_size"],
@@ -180,8 +179,6 @@ def experiment(
         datasets_loading_function=datasets_loading_fn,
         batch_size=batch_size,
     )
-    tuner = Tuner(trainer)
-    tuner.lr_find(model)
     # TODO: what are these exactly?
     # Train, validate, and test.
     trainer.fit(model)

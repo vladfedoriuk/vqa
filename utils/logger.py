@@ -3,9 +3,10 @@
 from models.backbones import AvailableBackbones
 from models.fusions import AvailableFusionModels
 from utils.datasets import AvailableDatasets
+from utils.torch import backbone_name_to_kebab_case
 
 
-def compose_run_name(
+def compose_fusion_classification_experiment_run_name(
     fusion: AvailableFusionModels,
     dataset: AvailableDatasets,
     freeze_image_encoder_backbone: bool,
@@ -18,7 +19,7 @@ def compose_run_name(
     batch_size: int = 64,
 ):
     """
-    Compose the run name.
+    Compose the run name for a fusion classification experiment.
 
     :param fusion: The name of the fusion model to use.
     :param dataset: The name of the dataset to use.
@@ -34,18 +35,43 @@ def compose_run_name(
     :param batch_size: The batch size to use.
     :return: The run name.
     """
-    run_name = f"{fusion.value}_{dataset.value}_"
+    run_name = f"{fusion.value}-classification-{dataset.value}-"
     if image_encoder_backbone is not None:
-        run_name += f"image_encoder_backbone_{image_encoder_backbone.value}_"
+        run_name += f"{backbone_name_to_kebab_case(image_encoder_backbone)}-"
         if freeze_image_encoder_backbone:
-            run_name += "frozen_"
+            run_name += "frozen-"
     if text_encoder_backbone is not None:
-        run_name += f"text_encoder_backbone_{text_encoder_backbone.value}_"
+        run_name += f"{backbone_name_to_kebab_case(text_encoder_backbone)}-"
         if freeze_text_encoder_backbone:
-            run_name += "frozen_"
+            run_name += "frozen-"
     if multimodal_backbone is not None:
-        run_name += f"multimodal_backbone_{multimodal_backbone.value}_"
+        run_name += f"{backbone_name_to_kebab_case(multimodal_backbone)}-"
         if freeze_multimodal_backbone:
-            run_name += "frozen_"
-    run_name += f"epochs_{epochs}_batch_size_{batch_size}"
+            run_name += "frozen-"
+    run_name += f"epochs-{epochs}-batch-size-{batch_size}"
     return run_name
+
+
+def compose_vilt_classification_experiment_run_name(
+    vilt_backbone: AvailableBackbones,
+    dataset: AvailableDatasets,
+    epochs: int = 10,
+    batch_size: int = 64,
+):
+    """
+    Compose the run name for a ViLT classification experiment.
+
+    :param vilt_backbone: The ViLT backbone to use.
+    :param dataset: The name of the dataset to use.
+    :param epochs: The number of epochs to train for.
+    :param batch_size: The batch size to use.
+    :return: The run name.
+    """
+    return "-".join(
+        (
+            f"{backbone_name_to_kebab_case(vilt_backbone)}",
+            f"classification-{dataset.value}",
+            f"epochs-{epochs}",
+            f"batch-size-{batch_size}",
+        )
+    )

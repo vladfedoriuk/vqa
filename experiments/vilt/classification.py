@@ -57,6 +57,15 @@ def experiment(
     # Login to wandb.
     wandb.login()  # TODO Context decorator
 
+    # Initialize the answer space.
+    answer_space = answer_space_registry.get(dataset)()
+
+    # Get the collator class.
+    collator_cls = collators_registry.get(dataset)
+
+    # Get the datasets loading function.
+    datasets_loading_fn = datasets_registry.get(dataset)
+
     # Initialize the logger.
     run_name = compose_vilt_classification_experiment_run_name(
         vilt_backbone=vilt_backbone,
@@ -66,15 +75,6 @@ def experiment(
     )
 
     logger = get_lightning_logger(run_name)
-
-    # Initialize the answer space.
-    answer_space = answer_space_registry.get(dataset)()
-
-    # Get the collator class.
-    collator_cls = collators_registry.get(dataset)
-
-    # Get the datasets loading function.
-    datasets_loading_fn = datasets_registry.get(dataset)
 
     if not issubclass(collator_cls, ClassificationCollator):
         print(f"Expected a classification collator for {dataset}, got {collator_cls}.")

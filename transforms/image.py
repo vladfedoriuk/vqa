@@ -7,6 +7,7 @@ from torchvision import transforms as T
 
 from transforms.noop import Noop
 from utils.batch import batch_to_device
+from utils.torch import DeviceAwareModule
 from utils.types import BatchType
 
 
@@ -131,7 +132,7 @@ def augment_image_for_vqa(image: PIL.Image.Image):
     )(image)
 
 
-class BatchVQAImageAugmentationModule(nn.Module):
+class BatchVQAImageAugmentationModule(DeviceAwareModule):
     """
     Perform image augmentation for VQA experiments.
 
@@ -179,7 +180,6 @@ class BatchVQAImageAugmentationModule(nn.Module):
     def __init__(self):
         """Initialize the augmentation module."""
         super().__init__()
-        self._hidden_weight = nn.Parameter(torch.tensor(0.5))
         self.augmentation = nn.Sequential(
             K.RandomRotation(degrees=5),
             K.RandomAffine(degrees=0, translate=(0.05, 0.05)),
@@ -200,9 +200,9 @@ class BatchVQAImageAugmentationModule(nn.Module):
         :return: The batch of images.
         """
         if isinstance(images, list):
-            images = batch_to_device(torch.stack(images, dim=0), device=self._hidden_weight.device)
+            images = batch_to_device(torch.stack(images, dim=0), device=self.device)
         else:
-            images = batch_to_device(images, device=self._hidden_weight.device)
+            images = batch_to_device(images, device=self.device)
         return images
 
     @torch.no_grad()

@@ -11,6 +11,7 @@ from typing import Any
 import torch
 from lightning import seed_everything
 from torch import nn
+from torch.types import Device
 from transformers import BatchEncoding, BatchFeature
 
 
@@ -37,7 +38,9 @@ def squeeze_dict_of_tensors(
     :param dict_of_tensors: The dict of tensors.
     :return: The squeezed dict of tensors.
     """
-    return {key: value.squeeze() for key, value in dict_of_tensors.items()}
+    return {
+        key: (value.squeeze() if isinstance(value, torch.Tensor) else value) for key, value in dict_of_tensors.items()
+    }
 
 
 def expand_first_dim_dict_of_tensors(
@@ -49,7 +52,10 @@ def expand_first_dim_dict_of_tensors(
     :param dict_of_tensors: The dict of tensors.
     :return: The expanded dict of tensors.
     """
-    return {key: value.unsqueeze(0) for key, value in dict_of_tensors.items()}
+    return {
+        key: (value.unsqueeze(0) if isinstance(value, torch.Tensor) else value)
+        for key, value in dict_of_tensors.items()
+    }
 
 
 def freeze_model_parameters(model, excludes: Sequence[Callable[[str], bool]] = ()):
@@ -92,6 +98,39 @@ def initialize_linear_weights(model: nn.Module):
                 nn.init.constant_(module.bias, 0)
 
 
+class DeviceAwareModule(nn.Module):
+    """
+    A module which is aware of the device it is on.
+
+    Inspired by:
+    https://github.com/pytorch/pytorch/issues/7460
+
+    All the parameters of the module are expected to be on the same device.
+    """
+
+    def __init__(self):
+        """
+        Initialize the module.
+
+        The module is expected to have at least one parameter.
+        """
+        super().__init__()
+        # To ensure there is at least one parameter on the module.
+        self.__hidden_parameter = nn.Parameter(torch.tensor(0.5))
+
+    @property
+    def device(self) -> Device:
+        """
+        Get the device of the module.
+
+        :return:
+        """
+        devices = {parameter.device for parameter in self.parameters()}
+        if len(devices) != 1:
+            raise RuntimeError(f"The module has parameters on different devices: {devices}.")
+        return devices.pop()
+
+
 __all__ = [
     "ensure_reproducibility",
     "squeeze_dict_of_tensors",
@@ -99,4 +138,5 @@ __all__ = [
     "freeze_model_parameters",
     "backbone_name_to_kebab_case",
     "initialize_linear_weights",
+    "DeviceAwareModule",
 ]

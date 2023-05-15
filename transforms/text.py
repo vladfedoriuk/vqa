@@ -13,10 +13,11 @@ from transformers import (
 )
 
 from transforms.noop import Noop
+from utils.torch import DeviceAwareModule
 from utils.types import BatchTextTransformsType, BatchType, StageType
 
 
-class QuestionAugmentationModule(nn.Module):
+class QuestionAugmentationModule(DeviceAwareModule):
     """Perform question augmentation."""
 
     def __init__(
@@ -26,7 +27,6 @@ class QuestionAugmentationModule(nn.Module):
     ):
         """Initialize the module."""
         super().__init__()
-        self._hidden_weight = nn.Parameter(torch.tensor(0.5))
         self.to_tokenizer = AutoTokenizer.from_pretrained(to_model_name)
         self.from_tokenizer = AutoTokenizer.from_pretrained(from_model_name)
 
@@ -78,10 +78,10 @@ class QuestionAugmentationModule(nn.Module):
             padding=True,
             truncation=True,
         )
-        model.to(self._hidden_weight.device)
+        model.to(self.device)
         model = cast(GenerationMixin, model)
         outputs = model.generate(
-            input_ids=processed_data["input_ids"].to(self._hidden_weight.device),
+            input_ids=processed_data["input_ids"].to(self.device),
             do_sample=True,
             top_k=100,
             top_p=0.95,

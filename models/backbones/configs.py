@@ -370,6 +370,7 @@ class ViLTMLMConfig(BackboneConfig):
             truncation=True,
             return_token_type_ids=True,
             return_attention_mask=True,
+            return_special_tokens_mask=True,
         )
 
     @classmethod

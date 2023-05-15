@@ -1,15 +1,15 @@
 """The VQA V2 collator."""
 import dataclasses
 
-from collators import ClassificationCollator, VQACollatorMixin, registry
+from collators import ClassificationCollator, VQAClassificationCollatorMixin, registry
 from utils.datasets import AvailableDatasets
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 
 
 @registry.register(AvailableDatasets.VQA_V2)
 @registry.register(AvailableDatasets.VQA_V2_SAMPLE)
-@dataclasses.dataclass(frozen=True)
-class VqaV2Collator(VQACollatorMixin, ClassificationCollator):
+@dataclasses.dataclass
+class VqaV2ClassificationCollator(VQAClassificationCollatorMixin, ClassificationCollator):
     """The VQA V2 collator."""
 
     #: The answer space.

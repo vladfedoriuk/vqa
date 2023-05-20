@@ -14,7 +14,7 @@ from utils.types import BatchType
 # We use torchvision for faster image pre-processing. The transforms are implemented as nn.Module,
 # so we jit it to be faster.
 # https://github.com/huggingface/transformers/blob/main/examples/pytorch/contrastive-image-text/run_clip.py
-class SingleVQAImageAugmentationModule(nn.Module):
+class SingleVQAImageAugmentationModule(DeviceAwareModule):
     """
     Perform image augmentation for VQA experiments.
 
@@ -77,7 +77,7 @@ class SingleVQAImageAugmentationModule(nn.Module):
         :param image: The image.
         :return: The augmented image.
         """
-        return self._augmentation(image)
+        return batch_to_device(self._augmentation(batch_to_device(image)), self.device)
 
 
 def augment_image_for_vqa(image: PIL.Image.Image):

@@ -119,7 +119,7 @@ class DeviceAwareModule(nn.Module):
         """
         super().__init__()
         # To ensure there is at least one parameter on the module.
-        self.__hidden_parameter = nn.Parameter(torch.tensor(0.5))
+        self._hidden_parameter = nn.Parameter(torch.tensor(0.5))
 
     @property
     def device(self) -> Device:

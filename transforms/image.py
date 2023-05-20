@@ -243,7 +243,7 @@ def default_image_single_transforms_factory():
     """
     return nn.ModuleDict(
         {
-            "fit": SingleVQAImageAugmentationModule(),
+            "fit": augment_image_for_vqa,
             "validate": Noop(),
             "test": Noop(),
             "predict": Noop(),

@@ -75,7 +75,7 @@ class SingleVQAImageAugmentationModule(nn.Module):
         :param image: The image.
         :return: The augmented image.
         """
-        return T.RandomOrder(self._augmentation)(image)
+        return T.RandomOrder(list(self._augmentation))(image)
 
 
 def augment_image_for_vqa(image: PIL.Image.Image):

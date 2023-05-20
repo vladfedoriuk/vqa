@@ -81,8 +81,8 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         return {
             "multimodal_emb": (
                 self.vilt_backbone_config.get_multimodal_representation_from_preprocessed(
-                    self.vilt,
-                    batch,
+                    model=self.vilt,
+                    processor_output=batch,
                 )
             )
         }

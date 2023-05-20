@@ -219,4 +219,4 @@ class VQAClassificationMixin:
         :return: The batch.
         """
         instance = cast(pl.LightningModule, self)
-        return self._collator_fn(batch_to_device(batch, instance.device))
+        return batch_to_device(self._collator_fn(batch_to_device(batch, instance.device)), instance.device)

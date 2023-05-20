@@ -218,7 +218,7 @@ class BatchVQAImageAugmentationModule(DeviceAwareModule):
         images = batch["pixel_values"]
         images = self._handle_images_structure(images)
         batch["pixel_values"] = self.augmentation(images)
-        return batch_to_device(batch, device=self.device)
+        return batch
 
 
 def default_image_batch_transforms_factory():

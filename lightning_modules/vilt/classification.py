@@ -11,7 +11,6 @@ from models.classifiers import default_classifier_factory
 from transforms.image import default_image_batch_transforms_factory
 from transforms.noop import default_noop_transforms_factory
 from transforms.text import default_text_batch_transforms_factory
-from utils.batch import batch_to_device
 from utils.datasets import DatasetsLoadingFunctionType
 from utils.datasets.answer_space import AnswerSpace
 from utils.types import BatchType
@@ -81,12 +80,11 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         :param batch: The batch.
         :return: The embedding.
         """
-        self.vilt.to(self.device)
         return {
             "multimodal_emb": (
                 self.vilt_backbone_config.get_multimodal_representation_from_preprocessed(
                     self.vilt,
-                    batch_to_device(batch, self.device),
+                    batch,
                 )
             )
         }
@@ -98,7 +96,6 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         :param batch: The batch.
         :return: The loss and logits.
         """
-        batch = batch_to_device(batch, self.device)
         embedding = self._get_multimodal_embedding(batch)
         logits = self.classifier(embedding["multimodal_emb"])
         loss = self.loss(logits, batch["answer_label"])

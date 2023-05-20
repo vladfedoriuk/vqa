@@ -4,7 +4,6 @@ from typing import TypeVar
 import torch
 from torch import nn
 
-from utils.batch import batch_to_device
 from utils.torch import DeviceAwareModule
 
 DataType = TypeVar("DataType")
@@ -35,7 +34,7 @@ class Noop(DeviceAwareModule):
         :param data: Any data.
         :return: The same data.
         """
-        return batch_to_device(data, device=self.device)
+        return data
 
 
 def default_noop_transforms_factory():

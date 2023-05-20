@@ -58,14 +58,16 @@ class SingleVQAImageAugmentationModule(nn.Module):
     def __init__(self):
         """Initialize the module."""
         super().__init__()
-        self._augmentation = torch.nn.Sequential(
-            T.RandomRotation(degrees=5),
-            T.RandomAffine(degrees=0, translate=(0.05, 0.05)),
-            T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
-            T.RandomApply([T.GaussianBlur(kernel_size=3)], p=0.5),
-            T.RandomApply([T.RandomCrop(size=224)], p=0.5),
-            T.RandomApply([T.RandomResizedCrop(size=224)], p=0.5),
-            T.Resize(size=224),
+        self._augmentation = T.RandomOrder(
+            [
+                T.RandomRotation(degrees=5),
+                T.RandomAffine(degrees=0, translate=(0.05, 0.05)),
+                T.ColorJitter(brightness=0.05, contrast=0.05, saturation=0.05, hue=0.05),
+                T.RandomApply([T.GaussianBlur(kernel_size=3)], p=0.5),
+                T.RandomApply([T.RandomCrop(size=224)], p=0.5),
+                T.RandomApply([T.RandomResizedCrop(size=224)], p=0.5),
+                T.Resize(size=224),
+            ]
         )
 
     def forward(self, image: PIL.Image.Image) -> PIL.Image.Image:
@@ -243,7 +245,7 @@ def default_image_single_transforms_factory():
     """
     return nn.ModuleDict(
         {
-            "fit": augment_image_for_vqa,
+            "fit": SingleVQAImageAugmentationModule(),
             "validate": Noop(),
             "test": Noop(),
             "predict": Noop(),

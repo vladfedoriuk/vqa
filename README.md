@@ -30,7 +30,6 @@ cp .env.template .env
 ```
 - Replace the `...` with corresponding values.
 
-```
 ### Working on server
 - To copy a directory from local host to a remote host via SCP (example):
 ```shell

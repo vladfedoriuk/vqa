@@ -6,6 +6,7 @@ from typing import Any, Literal, TypedDict, cast
 import datasets
 import lightning.pytorch as pl
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from torchmetrics.functional import accuracy
 from transformers import PreTrainedTokenizer
@@ -219,4 +220,14 @@ class VQAClassificationMixin:
         :return: The batch.
         """
         instance = cast(pl.LightningModule, self)
-        return self._collator_fn(batch_to_device(batch, instance.device))
+
+        if isinstance(self.batch_image_transforms, nn.Module):
+            self.batch_image_transforms.to(instance.device)
+        if isinstance(self.batch_text_transforms, nn.Module):
+            self.batch_text_transforms.to(instance.device)
+        if isinstance(self.single_image_transforms, nn.Module):
+            self.single_image_transforms.to(instance.device)
+        if isinstance(self.single_text_transforms, nn.Module):
+            self.single_text_transforms.to(instance.device)
+        batch = batch_to_device(batch, instance.device)
+        return self._collator_fn(batch)

@@ -155,4 +155,5 @@ __all__ = [
     "backbone_name_to_kebab_case",
     "initialize_linear_weights",
     "DeviceAwareModule",
+    "get_lightning_trainer_strategy",
 ]

@@ -13,6 +13,7 @@ from transformers import (
 )
 
 from transforms.noop import Noop
+from utils.batch import batch_to_device
 from utils.torch import DeviceAwareModule
 from utils.types import BatchTextTransformsType, BatchType, StageType
 
@@ -47,6 +48,7 @@ class QuestionAugmentationModule(DeviceAwareModule):
         :param batch: The batch to augment.
         :return: The augmented batch.
         """
+        batch = batch_to_device(batch, device=self.device)
         questions = self._ensure_list_of_questions(batch["question"])
 
         translated_questions = self.translate_one_step_batched(questions, self.to_tokenizer, self.to_model)

@@ -215,11 +215,10 @@ class BatchVQAImageAugmentationModule(DeviceAwareModule):
         :param batch: The batch of images.
         :return: A batch with the augmented images.
         """
-        batch = batch_to_device(batch, device=self.device)
         images = batch["pixel_values"]
         images = self._handle_images_structure(images)
         batch["pixel_values"] = self.augmentation(images)
-        return batch
+        return batch_to_device(batch, device=self.device)
 
 
 def default_image_batch_transforms_factory():

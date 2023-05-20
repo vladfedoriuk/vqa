@@ -48,7 +48,6 @@ class QuestionAugmentationModule(DeviceAwareModule):
         :param batch: The batch to augment.
         :return: The augmented batch.
         """
-        batch = batch_to_device(batch, device=self.device)
         questions = self._ensure_list_of_questions(batch["question"])
 
         translated_questions = self.translate_one_step_batched(questions, self.to_tokenizer, self.to_model)
@@ -83,7 +82,7 @@ class QuestionAugmentationModule(DeviceAwareModule):
         model.to(self.device)
         model = cast(GenerationMixin, model)
         outputs = model.generate(
-            input_ids=processed_data["input_ids"].to(self.device),
+            input_ids=batch_to_device(processed_data["input_ids"], device=self.device),
             do_sample=True,
             top_k=100,
             top_p=0.95,

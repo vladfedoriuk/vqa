@@ -230,4 +230,4 @@ class VQAClassificationMixin:
         if isinstance(self.single_text_transforms, nn.Module):
             self.single_text_transforms.to(instance.device)
         batch = batch_to_device(batch, instance.device)
-        return self._collator_fn(batch)
+        return batch_to_device(self._collator_fn(batch), instance.device)

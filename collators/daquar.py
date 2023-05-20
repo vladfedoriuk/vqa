@@ -74,6 +74,8 @@ class DaquarDataCollatorForLanguageModeling(
     """The Daquar data collator for language modeling."""
 
     ANSWER_BATCH_PROPERTY: ClassVar[str] = "answer"
+    ORIGINAL_QUESTION_BATCH_PROPERTY: ClassVar[str] = "original_question"
+    QUESTION_ANSWER_PROMPT_BATCH_PROPERTY: ClassVar[str] = VQAMultimodalCollatorMixin.QUESTION_BATCH_PROPERTY
 
     data_collator_for_language_modeling: DataCollatorForLanguageModeling = dataclasses.field(init=False)
 
@@ -83,6 +85,16 @@ class DaquarDataCollatorForLanguageModeling(
             tokenizer=self.tokenizer, mlm=True, mlm_probability=0.15, return_tensors="pt"
         )
 
+    def _backup_question(self, batch: BatchType) -> BatchType:
+        """
+        Backup the question.
+
+        :param batch: The batch.
+        :return: The batch with the backed up question.
+        """
+        batch[self.ORIGINAL_QUESTION_BATCH_PROPERTY] = batch[self.QUESTION_BATCH_PROPERTY].copy()
+        return batch
+
     def _create_question_answer_prompt(self, batch: BatchType) -> BatchType:
         """
         Create the question/answer prompt.
@@ -91,7 +103,7 @@ class DaquarDataCollatorForLanguageModeling(
         :return: The batch with the question/answer prompt.
         """
         # Create the question/answer prompt
-        batch[self.QUESTION_BATCH_PROPERTY] = [
+        batch[self.QUESTION_ANSWER_PROMPT_BATCH_PROPERTY] = [
             f"question: {question} answer: {answer}"
             for question, answer in zip(batch[self.QUESTION_BATCH_PROPERTY], batch[self.ANSWER_BATCH_PROPERTY])
         ]
@@ -105,6 +117,8 @@ class DaquarDataCollatorForLanguageModeling(
         :return: The collated batch.
         """
         batch = convert_batch_to_dict_of_features(batch)
+        # Backup the question
+        batch = self._backup_question(batch)
         # Create the question/answer prompt
         batch = self._create_question_answer_prompt(batch)
         # Do the pre-processing stuff with tokenization and image processing

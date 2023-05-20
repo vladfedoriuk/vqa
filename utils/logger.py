@@ -1,4 +1,5 @@
 """The logger utilities."""
+from typing import Literal
 
 from models.backbones import AvailableBackbones
 from models.fusions import AvailableFusionModels
@@ -52,11 +53,12 @@ def compose_fusion_classification_experiment_run_name(
     return run_name
 
 
-def compose_vilt_classification_experiment_run_name(
+def compose_vilt_experiment_run_name(
     vilt_backbone: AvailableBackbones,
     dataset: AvailableDatasets,
     epochs: int = 10,
     batch_size: int = 64,
+    type_: Literal["mlm", "classification"] = "classification",
 ):
     """
     Compose the run name for a ViLT classification experiment.
@@ -65,12 +67,13 @@ def compose_vilt_classification_experiment_run_name(
     :param dataset: The name of the dataset to use.
     :param epochs: The number of epochs to train for.
     :param batch_size: The batch size to use.
+    :param type_: The type of experiment to run.
     :return: The run name.
     """
     return "-".join(
         (
             f"{backbone_name_to_kebab_case(vilt_backbone)}",
-            f"classification-{dataset.value}",
+            f"{type_}-{dataset.value}",
             f"epochs-{epochs}",
             f"batch-size-{batch_size}",
         )

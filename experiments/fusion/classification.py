@@ -150,7 +150,7 @@ def experiment(
                 dataset=dataset,
             ),
             get_model_checkpoint(
-                file_name=f"{run_name}.ckpt",
+                file_name=run_name,
             ),
         ],
         accumulate_grad_batches=32,

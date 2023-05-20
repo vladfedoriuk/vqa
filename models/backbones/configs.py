@@ -391,7 +391,7 @@ class ViLTMLMConfig(BackboneConfig):
 @registry.register(AvailableBackbones.ViLT_VQA)
 @dataclasses.dataclass(frozen=True)
 class ViLTVQAConfig(ViLTMLMConfig):
-    """ViLT finetuned on VQA."""
+    """ViLT fine-tuned on VQA."""
 
     @classmethod
     def get_model(cls):

@@ -12,7 +12,6 @@ The experiment can be parameterized using the following command line arguments:
 import lightning.pytorch as pl
 import typer
 import wandb
-from lightning.pytorch.strategies import DDPStrategy
 
 from callbacks.checkpoints import get_model_checkpoint
 from lightning_modules.vilt.mlm import ViLTMaskedLanguageModelingModule
@@ -22,7 +21,7 @@ from utils.config import load_env_config
 from utils.datasets import AvailableDatasets
 from utils.logger import compose_vilt_experiment_run_name
 from utils.registry import initialize_registries
-from utils.torch import ensure_reproducibility
+from utils.torch import ensure_reproducibility, get_lightning_trainer_strategy
 
 
 @initialize_registries()
@@ -62,9 +61,7 @@ def experiment(
         logger=logger,
         devices=1,
         num_nodes=1,
-        strategy=DDPStrategy(
-            find_unused_parameters=True
-        ),  # TODO: Read it from env vars - the env var will be set in scripts.
+        strategy=get_lightning_trainer_strategy(),
         # - Add a new config setting for the strategy.
         max_epochs=epochs,
         callbacks=[

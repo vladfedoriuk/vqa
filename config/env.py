@@ -26,3 +26,6 @@ DATA_PATH = Path(os.getenv("DATA_PATH", Path(__file__).parent.parent / "data"))
 
 # A project name on the Weights and Biases
 WANDB_PROJECT: Final[str] = os.getenv("WANDB_PROJECT", "vqa")
+
+# Use DDP for training
+USE_DDP: Final[bool] = os.getenv("USE_DDP", "False").lower() == "true"

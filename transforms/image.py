@@ -77,7 +77,7 @@ class SingleVQAImageAugmentationModule(DeviceAwareModule):
         :param image: The image.
         :return: The augmented image.
         """
-        return batch_to_device(self._augmentation(batch_to_device(image)), self.device)
+        return batch_to_device(self._augmentation(batch_to_device(image, self.device)), self.device)
 
 
 def augment_image_for_vqa(image: PIL.Image.Image):

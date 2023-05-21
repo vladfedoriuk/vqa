@@ -3,5 +3,5 @@
 python -m pip install -r requirements/base.txt .
 
 python experiments/vilt/masked_language_modeling.py \
-      --epochs 100 \
+      --epochs 30 \
       --batch-size 16

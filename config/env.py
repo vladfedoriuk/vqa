@@ -29,3 +29,6 @@ WANDB_PROJECT: Final[str] = os.getenv("WANDB_PROJECT", "vqa")
 
 # Use DDP for training
 USE_DDP: Final[bool] = os.getenv("USE_DDP", "False").lower() == "true"
+
+# Number of the dataloader workers
+NUM_WORKERS: Final[int] = int(os.getenv("NUM_WORKERS", "6"))

@@ -1,15 +1,13 @@
 """No-op transform."""
-from typing import TypeVar
+from typing import Any
 
 import torch
 from torch import nn
 
 from utils.torch import DeviceAwareModule
 
-DataType = TypeVar("DataType")
 
-
-def noop(data: DataType) -> DataType:
+def noop(data: Any) -> Any:
     """
     No-op transform.
 
@@ -27,7 +25,7 @@ class Noop(DeviceAwareModule):
     """
 
     @torch.no_grad()
-    def forward(self, data: DataType) -> DataType:
+    def forward(self, data: Any) -> Any:
         """
         Forward pass.
 

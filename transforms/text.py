@@ -73,6 +73,8 @@ class QuestionAugmentationModule(DeviceAwareModule):
         :param model: The model to use.
         :return: The translated texts.
         """
+        # TODO: Cleanup these .to() calls and batch_to_device() calls.
+        #  Make sure that the model is on the correct device.
         processed_data = tokenizer(
             text=text,
             return_tensors="pt",

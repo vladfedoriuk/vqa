@@ -19,7 +19,7 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
 
     def __init__(
         self,
-        vilt_backbone_config: type[BackboneConfig],
+        vilt_backbone_config: type[BackboneConfig],  # TODO: Make this just BackboneConfig everywhere
         answer_space: AnswerSpace,
         datasets_loading_function: DatasetsLoadingFunctionType,
         collator_cls: type[ClassificationCollator],

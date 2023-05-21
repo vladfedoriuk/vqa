@@ -12,6 +12,7 @@ from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
 from collators import ClassificationCollator
+from config.env import NUM_WORKERS
 from models.backbones import BackboneConfig
 from utils.batch import batch_to_device
 from utils.datasets import DatasetsLoadingFunctionType
@@ -160,7 +161,7 @@ class VQAClassificationMixin:
         return DataLoader(
             self._data[datasets.Split.TRAIN],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 
@@ -173,7 +174,7 @@ class VQAClassificationMixin:
         return DataLoader(
             self._data[datasets.Split.VALIDATION],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 
@@ -186,7 +187,7 @@ class VQAClassificationMixin:
         return DataLoader(
             self._data[datasets.Split.TEST],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 

@@ -9,6 +9,7 @@ from transformers import ViltForMaskedLM
 
 from collators import ClassificationCollator
 from collators.daquar import DaquarDataCollatorForLanguageModeling
+from config.env import NUM_WORKERS
 from models.backbones.configs import ViLTMLMConfig
 from transforms.noop import noop
 from utils.batch import batch_to_device
@@ -100,7 +101,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         return DataLoader(
             self._data[datasets.Split.TRAIN],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 
@@ -113,7 +114,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         return DataLoader(
             self._data[datasets.Split.VALIDATION],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 
@@ -126,7 +127,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         return DataLoader(
             self._data[datasets.Split.TEST],
             batch_size=self.batch_size,
-            num_workers=6,
+            num_workers=NUM_WORKERS,
             drop_last=True,
         )
 

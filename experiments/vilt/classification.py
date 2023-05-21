@@ -14,8 +14,8 @@ from typing import cast
 
 import lightning.pytorch as pl
 import typer
-
 import wandb
+
 from callbacks.checkpoints import get_model_checkpoint
 from callbacks.sample import ClassificationPredictionSamplesCallback
 from collators import ClassificationCollator
@@ -42,7 +42,7 @@ def experiment(
     batch_size: int = 64,
 ):
     """
-    Run the simple concatenation fusion experiment.
+    Run the ViLT classification experiment.
 
     :param vilt_backbone: The ViLT backbone to use.
     :param dataset: The name of the dataset to use.
@@ -93,7 +93,6 @@ def experiment(
         devices=1,
         num_nodes=1,
         strategy=get_lightning_trainer_strategy(),
-        # - Add a new config setting for the strategy.
         max_epochs=epochs,
         callbacks=[
             ClassificationPredictionSamplesCallback(

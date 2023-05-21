@@ -48,8 +48,9 @@ class AvailableBackbones(str, RegistryKey):
     # Model from https://huggingface.co/nlpconnect/vit-gpt2-image-captioning
     VIT_GPT2 = "nlpconnect/vit-gpt2-image-captioning"
 
+    # TODO: differentiate between encoder backbones and encoder-decoder backbones
     @classproperty
-    def image_backbones(cls) -> tuple["AvailableBackbones", ...]:
+    def image_backbones(cls) -> tuple["AvailableBackbones", ...]:  # TODO: Refactor this - move to variables
         """Get the image backbones."""
         return (
             cls.VIT,

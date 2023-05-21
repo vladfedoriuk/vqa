@@ -1,23 +1,23 @@
-"""The masked language modeling lightning module."""
+"""The language generation Encoder-Decoder module using ViT and GPT-2 pretrained backbone."""
 from typing import Any, cast
 
 import datasets
 import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader
-from transformers import ViltForMaskedLM
+from transformers.generation_utils import GenerationMixin
 
 from collators import ClassificationCollator
-from collators.daquar import DaquarDataCollatorForMaskedLanguageModeling
+from collators.daquar import DaquarDataCollatorForLanguageModeling
 from config.env import NUM_WORKERS
-from models.backbones.configs import ViLTMLMConfig
+from models.backbones.configs import ViTGPT2Config
 from transforms.noop import noop
 from utils.batch import batch_to_device, convert_batch_to_dict_of_features
 from utils.datasets.daquar import load_daquar_datasets
 from utils.types import BatchType, StageType
 
 
-class ViLTMaskedLanguageModelingModule(pl.LightningModule):
+class ViTGPT2EncoderDecoderModule(pl.LightningModule):
     """The ViLT masked language modeling module."""
 
     def __init__(
@@ -34,10 +34,10 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :param batch_size: The batch size.
         """
         super().__init__()
-        self.vilt_backbone_config = ViLTMLMConfig
-        self.vilt = ViltForMaskedLM.from_pretrained("dandelin/vilt-b32-mlm")
-        self.tokenizer = self.vilt_backbone_config.get_tokenizer()
-        self.image_processor = self.vilt_backbone_config.get_image_processor()
+        self.backbone_config = ViTGPT2Config
+        self.backbone_model = self.backbone_config.get_model()
+        self.tokenizer = self.backbone_config.get_tokenizer()
+        self.image_processor = self.backbone_config.get_image_processor()
         self.batch_size = batch_size
 
         self._data: dict[datasets.Split, datasets.Dataset] = {}
@@ -55,14 +55,11 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :param prefix: The prefix.
         :return: The loss and logits.
         """
-        outputs = self.vilt(
-            input_ids=batch["input_ids"],
-            token_type_ids=batch["token_type_ids"],
-            attention_mask=batch["attention_mask"],
+        outputs = self.backbone_model(
             pixel_values=batch["pixel_values"],
-            pixel_mask=batch["pixel_mask"],
             return_dict=True,
             labels=batch["labels"],
+            # Automatically figures out the decoder input_ids, attention_mask, etc.
         )
         loss = outputs.loss
         self.log_dict(
@@ -150,15 +147,15 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :return: None.
         """
         self._data = load_daquar_datasets()
-        self._collator_fn = DaquarDataCollatorForMaskedLanguageModeling(
+        self._collator_fn = DaquarDataCollatorForLanguageModeling(
             tokenizer=self.tokenizer,
             image_processor=self.image_processor,
-            image_encoder_config=self.vilt_backbone_config,
-            text_encoder_config=self.vilt_backbone_config,
+            image_encoder_config=self.backbone_config,
+            text_encoder_config=self.backbone_config,
             single_image_transforms=noop,
-            single_text_transforms=noop,  # TODO: Use augmentations
+            single_text_transforms=noop,
             batch_image_transforms=noop,
-            batch_text_transforms=noop,
+            batch_text_transforms=noop,  # TODO: Use augmentations
         )
 
     def on_after_batch_transfer(self, batch: BatchType, dataloader_idx: int):
@@ -172,37 +169,32 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         instance = cast(pl.LightningModule, self)
         return batch_to_device(self._collator_fn(batch_to_device(batch, instance.device)), instance.device)
 
-    def make_masked_answer_prediction(
+    def make_generated_answer_prediction(
         self,
         batch: BatchType,
     ):
         """
-        Make the masked answer prediction.
+        Make the answer prediction by generating the answer.
 
         :param batch: The batch.
-        :return: The masked answer prediction.
+        :return: The generated answer.
         """
         batch = convert_batch_to_dict_of_features(batch)
-        questions = batch[DaquarDataCollatorForMaskedLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
-        processor = ViLTMLMConfig.get_processor()
-        tokenizer = ViLTMLMConfig.get_tokenizer()
-        masked_questions = [f"question: {question} answer: {tokenizer.mask_token}" for question in questions]
-        inputs = ViLTMLMConfig.get_processed_text_and_image(
-            processor=processor,
-            text=masked_questions,
-            image=batch[DaquarDataCollatorForMaskedLanguageModeling.IMAGE_BATCH_PROPERTY],
+        questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
+        tokenizer = self.backbone_config.get_tokenizer()
+        prompts = [f"question: {question} answer: " for question in questions]
+        decoder_inputs = self.backbone_config.get_tokenized_text(
+            tokenizer=tokenizer,
+            text=prompts,
         )
-        inputs = batch_to_device(inputs, self.device)
-        mask_token_indices = inputs["input_ids"] == tokenizer.mask_token_id
-        outputs = self.vilt(
-            input_ids=inputs["input_ids"],
-            token_type_ids=inputs["token_type_ids"],
-            attention_mask=inputs["attention_mask"],
-            pixel_values=inputs["pixel_values"],
-            pixel_mask=inputs["pixel_mask"],
-            return_dict=True,
+        decoder_inputs = batch_to_device(decoder_inputs, self.device)
+        backbone_model = cast(GenerationMixin, self.backbone_model)
+        outputs = backbone_model.generate(
+            pixel_values=batch["pixel_values"],
+            decoder_input_ids=decoder_inputs.input_ids,
+            return_dict_in_generate=True,
+            do_sample=False,
+            num_beams=4,
+            max_length=100,
         )
-        logits = outputs.logits
-        masked_answer_predictions = logits.argmax(dim=-1)
-        masked_answer_predictions = masked_answer_predictions[mask_token_indices]
-        return [tokenizer.decode(prediction) for prediction in masked_answer_predictions]
+        return tokenizer.batch_decode(outputs.sequences, skip_special_tokens=True)

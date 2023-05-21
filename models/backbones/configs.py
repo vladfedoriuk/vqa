@@ -6,7 +6,6 @@ import torch
 from transformers import (
     AutoImageProcessor,
     AutoModel,
-    AutoProcessor,
     AutoTokenizer,
     BatchEncoding,
     BatchFeature,
@@ -14,10 +13,12 @@ from transformers import (
     CLIPModel,
     CLIPProcessor,
     DeiTModel,
+    GPT2TokenizerFast,
     PreTrainedTokenizer,
     ViltModel,
     ViltProcessor,
     VisionEncoderDecoderModel,
+    ViTImageProcessor,
 )
 from transformers.image_processing_utils import BaseImageProcessor
 
@@ -428,12 +429,41 @@ class ViLTVQAConfig(ViLTMLMConfig):
 
 @registry.register(AvailableBackbones.VIT_GPT2)
 @dataclasses.dataclass(frozen=True)
-class ViTGPT2Config(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
+class ViTGPT2Config(BackboneConfig):
+    """ViT-GPT2 is a transformer Encoder-Decoder model for image captioning."""
+
     @classmethod
     def get_model(cls):
         """Get the model."""
         return VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 
     @classmethod
-    def get_processor(cls):
-        return AutoProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+    def get_tokenizer(cls):
+        """Get the tokenizer."""
+        return GPT2TokenizerFast.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_image_processor(cls):
+        """Get the image processor."""
+        return ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
+        """Get the image features from processor."""
+        return processor(
+            images=image,
+            return_tensors="pt",
+        )
+
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
+        """Get the tokenized text."""
+        return tokenizer(
+            text=text,
+            return_tensors="pt",
+            padding="max_length",
+            truncation=True,
+            return_token_type_ids=True,
+            return_attention_mask=True,
+            return_special_tokens_mask=True,
+        )

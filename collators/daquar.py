@@ -81,8 +81,8 @@ class DaquarDataCollatorForLanguageModeling(
 
     def __post_init__(self):
         """Initialize the data collator for language modeling."""
-        self.data_collator_for_mlm = DataCollatorForLanguageModeling(
-            tokenizer=self.tokenizer, mlm=True, mlm_probability=0.15, return_tensors="pt"
+        self.data_collator_for_language_modeling = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer, mlm=False, return_tensors="pt"
         )
 
     def _backup_question(self, batch: BatchType) -> BatchType:
@@ -125,7 +125,7 @@ class DaquarDataCollatorForLanguageModeling(
         # Do the pre-processing stuff with tokenization and image processing
         batch = super().__call__(batch)
         # Add the masked tokens, labels and token masks
-        features = self.data_collator_for_mlm(
+        features = self.data_collator_for_language_modeling(
             convert_batch_to_list_of_dicts(
                 {
                     "input_ids": batch["input_ids"],
@@ -140,3 +140,14 @@ class DaquarDataCollatorForLanguageModeling(
         if len(batch[self.QUESTION_BATCH_PROPERTY]) == 1:
             return expand_first_dim_dict_of_tensors(batch)
         return batch
+
+
+@dataclasses.dataclass
+class DaquarDataCollatorForMaskedLanguageModeling(DaquarDataCollatorForLanguageModeling):
+    """The Daquar data collator for masked language modeling."""
+
+    def __post_init__(self):
+        """Initialize the data collator for language modeling."""
+        self.data_collator_for_language_modeling = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer, mlm=True, mlm_probability=0.15, return_tensors="pt"
+        )

@@ -61,9 +61,9 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         self._collator_fn = None
 
         self.single_image_transforms = default_noop_transforms_factory()
-        self.batch_image_transforms = default_noop_transforms_factory()
+        self.batch_image_transforms = default_noop_transforms_factory()  # TODO: Use augmentations
         self.single_text_transforms = default_noop_transforms_factory()
-        self.batch_text_transforms = default_noop_transforms_factory()
+        self.batch_text_transforms = default_noop_transforms_factory()  # TODO: Use augmentations
 
         self.loss = torch.nn.CrossEntropyLoss()
 

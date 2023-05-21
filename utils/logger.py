@@ -78,3 +78,28 @@ def compose_vilt_experiment_run_name(
             f"batch-size-{batch_size}",
         )
     )
+
+
+def compose_encoder_decoder_experiment_run_name(
+    encoder_decoder_backbone: AvailableBackbones,
+    dataset: AvailableDatasets,
+    epochs: int = 10,
+    batch_size: int = 64,
+):
+    """
+    Compose the run name for an encoder-decoder experiment.
+
+    :param encoder_decoder_backbone: The encoder-decoder backbone to use.
+    :param dataset: The name of the dataset to use.
+    :param epochs: The number of epochs to train for.
+    :param batch_size: The batch size to use.
+    :return: The run name.
+    """
+    return "-".join(
+        (
+            f"{backbone_name_to_kebab_case(encoder_decoder_backbone)}",
+            f"{dataset.value}",
+            f"epochs-{epochs}",
+            f"batch-size-{batch_size}",
+        )
+    )

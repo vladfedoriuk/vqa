@@ -88,8 +88,9 @@ class QuestionAugmentationModule(DeviceAwareModule):
             do_sample=True,
             top_k=100,
             top_p=0.95,
+            max_length=100,  # TODO: Review these parameters.
         )
-        return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
+        return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]  # TODO: Maybe batch_decode()?
 
 
 def default_text_batch_transforms_factory() -> Mapping[StageType, BatchTextTransformsType]:

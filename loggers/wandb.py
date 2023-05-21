@@ -18,8 +18,12 @@ import wandb
 from lightning.pytorch.loggers.wandb import WandbLogger
 from wandb.sdk.wandb_run import Run
 
-from collators.daquar import DaquarDataCollatorForLanguageModeling
+from collators.daquar import (
+    DaquarDataCollatorForLanguageModeling,
+    DaquarDataCollatorForMaskedLanguageModeling,
+)
 from config.env import WANDB_PROJECT
+from lightning_modules.encoder_decoder.vit_gpt2 import ViTGPT2EncoderDecoderModule
 from lightning_modules.vilt.masked_language_modeling import (
     ViLTMaskedLanguageModelingModule,
 )
@@ -164,11 +168,46 @@ def log_daquar_vilt_mlm_predictions_as_table(
     data = [
         [
             wandb.Image(data_point["image"]),
-            data_point[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY],
+            data_point[DaquarDataCollatorForMaskedLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY],
             data_point["answer"],
             predicted_answer,
         ]
         for data_point, predicted_answer in zip(batch, pl_module.make_masked_answer_prediction(batch))
+    ]
+    logger.log_table(
+        key="sample_predictions",
+        columns=columns,
+        data=data,
+    )
+
+
+def log_daquar_causal_language_modeling_predictions_as_table(
+    logger: WandbLogger,
+    batch: list[dict[str, Any]],
+    pl_module: ViTGPT2EncoderDecoderModule,
+):
+    """
+    Log the Daquar predictions as a table to Weights & Biases.
+
+    :param logger: The logger.
+    :param batch: The batch.
+    :param pl_module: The module.
+    :return: None.
+    """
+    columns = [
+        "Image",
+        "Question",
+        "Answer",
+        "Model prediction",
+    ]
+    data = [
+        [
+            wandb.Image(data_point["image"]),
+            data_point[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY],
+            data_point["answer"],
+            predicted_answer,
+        ]
+        for data_point, predicted_answer in zip(batch, pl_module.make_generated_answer_prediction(batch))
     ]
     logger.log_table(
         key="sample_predictions",

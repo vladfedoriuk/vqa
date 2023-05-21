@@ -13,11 +13,13 @@ import torch
 from lightning import Callback
 from lightning.pytorch.loggers.wandb import WandbLogger
 
+from lightning_modules.encoder_decoder.vit_gpt2 import ViTGPT2EncoderDecoderModule
 from lightning_modules.fusion.classification import MultiModalFusionClassificationModule
 from lightning_modules.vilt.masked_language_modeling import (
     ViLTMaskedLanguageModelingModule,
 )
 from loggers.wandb import (
+    log_daquar_causal_language_modeling_predictions_as_table,
     log_daquar_predictions_as_table,
     log_daquar_vilt_mlm_predictions_as_table,
     log_vqa_v2_predictions_as_table,
@@ -121,15 +123,7 @@ class MaskedLanguageModelingPredictionSamplesCallback(PredictionSamplesCallback)
     :class:`lightning_modules.vilt.masked_language_modeling.ViLTMaskedLanguageModelingModule`.
 
     The callback logs the prediction samples to Weights & Biases.
-    """
-
-    def __init__(self, num_samples: int = 20):
-        """
-        Initialize the callback.
-
-        :param num_samples: The number of samples to log.
-        """
-        super().__init__(num_samples=num_samples)
+    """  # TODO: Make them dataset and model agnostic.
 
     def on_validation_batch_end(
         self, trainer, pl_module: ViLTMaskedLanguageModelingModule, outputs, batch, batch_idx, dataloader_idx=0
@@ -153,6 +147,44 @@ class MaskedLanguageModelingPredictionSamplesCallback(PredictionSamplesCallback)
         batch = self._prepare_batch_subset(batch)
         logger = cast(WandbLogger, pl_module.logger)
         log_daquar_vilt_mlm_predictions_as_table(
+            pl_module=pl_module,
+            logger=logger,
+            batch=batch,
+        )
+
+
+class CausalLanguageModelingPredictionSamplesCallback(PredictionSamplesCallback):
+    """
+    The callback to log the language modeling prediction samples fom the validation set.
+
+    The callback is meant to be used with
+    :class:`lightning_modules.vilt.masked_language_modeling.ViLTMaskedLanguageModelingModule`.
+
+    The callback logs the prediction samples to Weights & Biases.
+    """
+
+    def on_validation_batch_end(
+        self, trainer, pl_module: ViTGPT2EncoderDecoderModule, outputs, batch, batch_idx, dataloader_idx=0
+    ):
+        """
+        Call when the validation batch ends.
+
+        :param trainer: The trainer.
+        :param pl_module: The Lightning module.
+        :param outputs: The outputs.
+        :param batch: The batch.
+        :param batch_idx: The batch index.
+        :param dataloader_idx: The dataloader index.
+        """
+        assert isinstance(pl_module, ViTGPT2EncoderDecoderModule), (
+            f"The {self.__class__.__name__} callback is meant to be used with "
+            f"{ViTGPT2EncoderDecoderModule.__name__}."
+        )
+        if batch_idx != 0:
+            return
+        batch = self._prepare_batch_subset(batch)
+        logger = cast(WandbLogger, pl_module.logger)  # TODO: Move all up to this to the superclass.
+        log_daquar_causal_language_modeling_predictions_as_table(
             pl_module=pl_module,
             logger=logger,
             batch=batch,

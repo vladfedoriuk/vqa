@@ -15,7 +15,9 @@ import wandb
 
 from callbacks.checkpoints import get_model_checkpoint
 from callbacks.sample import MaskedLanguageModelingPredictionSamplesCallback
-from lightning_modules.vilt.mlm import ViLTMaskedLanguageModelingModule
+from lightning_modules.vilt.masked_language_modeling import (
+    ViLTMaskedLanguageModelingModule,
+)
 from loggers.wandb import get_lightning_logger
 from models.backbones import AvailableBackbones
 from utils.config import load_env_config
@@ -50,7 +52,7 @@ def experiment(
         dataset=AvailableDatasets.DAQUAR,
         epochs=epochs,
         batch_size=batch_size,
-        type_="mlm",
+        type_="masked-language-modeling",
     )
 
     logger = get_lightning_logger(run_name)

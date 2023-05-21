@@ -14,7 +14,9 @@ from lightning import Callback
 from lightning.pytorch.loggers.wandb import WandbLogger
 
 from lightning_modules.fusion.classification import MultiModalFusionClassificationModule
-from lightning_modules.vilt.mlm import ViLTMaskedLanguageModelingModule
+from lightning_modules.vilt.masked_language_modeling import (
+    ViLTMaskedLanguageModelingModule,
+)
 from loggers.wandb import (
     log_daquar_predictions_as_table,
     log_daquar_vilt_mlm_predictions_as_table,
@@ -116,7 +118,7 @@ class MaskedLanguageModelingPredictionSamplesCallback(PredictionSamplesCallback)
     The callback to log the masked language modeling prediction samples fom the validation set.
 
     The callback is meant to be used with
-    :class:`lightning_modules.vilt.mlm.ViLTMaskedLanguageModelingModule`.
+    :class:`lightning_modules.vilt.masked_language_modeling.ViLTMaskedLanguageModelingModule`.
 
     The callback logs the prediction samples to Weights & Biases.
     """

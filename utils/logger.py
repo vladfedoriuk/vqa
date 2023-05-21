@@ -58,7 +58,7 @@ def compose_vilt_experiment_run_name(
     dataset: AvailableDatasets,
     epochs: int = 10,
     batch_size: int = 64,
-    type_: Literal["mlm", "classification"] = "classification",
+    type_: Literal["masked-language-modeling", "classification"] = "classification",
 ):
     """
     Compose the run name for a ViLT classification experiment.

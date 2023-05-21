@@ -14,12 +14,15 @@ from functools import lru_cache
 from typing import Any, Literal
 
 import torch
+import wandb
 from lightning.pytorch.loggers.wandb import WandbLogger
 from wandb.sdk.wandb_run import Run
 
-import wandb
+from collators.daquar import DaquarDataCollatorForLanguageModeling
 from config.env import WANDB_PROJECT
-from lightning_modules.vilt.mlm import ViLTMaskedLanguageModelingModule
+from lightning_modules.vilt.masked_language_modeling import (
+    ViLTMaskedLanguageModelingModule,
+)
 from utils.datasets.vqa_v2 import VqaV2SampleAnswerSpace
 
 
@@ -159,7 +162,12 @@ def log_daquar_vilt_mlm_predictions_as_table(
         "Model prediction",
     ]
     data = [
-        [wandb.Image(data_point["image"]), data_point["question"], data_point["answer"], predicted_answer]
+        [
+            wandb.Image(data_point["image"]),
+            data_point[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY],
+            data_point["answer"],
+            predicted_answer,
+        ]
         for data_point, predicted_answer in zip(batch, pl_module.make_masked_answer_prediction(batch))
     ]
     logger.log_table(

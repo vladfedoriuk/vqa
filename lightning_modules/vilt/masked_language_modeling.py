@@ -65,7 +65,11 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
             labels=batch["labels"],
         )
         loss = outputs.loss
-        self.log(f"{prefix}_loss", loss)
+        self.log_dict(
+            {f"{prefix}_loss": loss},
+            batch_size=self.batch_size,
+            sync_dist=True,
+        )
         return {"loss": loss, "logits": outputs.logits}
 
     def training_step(self, batch: BatchType, batch_idx: int):

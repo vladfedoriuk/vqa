@@ -14,10 +14,10 @@ from typing import cast
 
 import lightning.pytorch as pl
 import typer
-import wandb
 
+import wandb
 from callbacks.checkpoints import get_model_checkpoint
-from callbacks.sample import PredictionSamplesCallback
+from callbacks.sample import ClassificationPredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
 from lightning_modules.vilt.classification import ViLTClassificationModule
@@ -96,7 +96,7 @@ def experiment(
         # - Add a new config setting for the strategy.
         max_epochs=epochs,
         callbacks=[
-            PredictionSamplesCallback(
+            ClassificationPredictionSamplesCallback(
                 answer_space=answer_space,
                 dataset=dataset,
             ),

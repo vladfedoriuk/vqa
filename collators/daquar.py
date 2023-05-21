@@ -116,6 +116,7 @@ class DaquarDataCollatorForLanguageModeling(
         :param batch: The batch.
         :return: The collated batch.
         """
+        # Convert the batch to a dict of features
         batch = convert_batch_to_dict_of_features(batch)
         # Backup the question
         batch = self._backup_question(batch)

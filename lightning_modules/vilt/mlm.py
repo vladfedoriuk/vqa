@@ -12,7 +12,7 @@ from collators.daquar import DaquarDataCollatorForLanguageModeling
 from config.env import NUM_WORKERS
 from models.backbones.configs import ViLTMLMConfig
 from transforms.noop import noop
-from utils.batch import batch_to_device
+from utils.batch import batch_to_device, convert_batch_to_dict_of_features
 from utils.datasets.daquar import load_daquar_datasets
 from utils.types import BatchType, StageType
 
@@ -160,3 +160,31 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         """
         instance = cast(pl.LightningModule, self)
         return self._collator_fn(batch_to_device(batch, instance.device))
+
+    def make_masked_answer_prediction(
+        self,
+        batch: BatchType,
+    ):
+        """
+        Make the masked answer prediction.
+
+        :param batch: The batch.
+        :return: The masked answer prediction.
+        """
+        batch = convert_batch_to_dict_of_features(batch)
+        questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
+        processor = ViLTMLMConfig.get_processor()
+        tokenizer = ViLTMLMConfig.get_tokenizer()
+        masked_questions = [f"question: {question} answer: {tokenizer.mask_token}" for question in questions]
+        inputs = ViLTMLMConfig.get_processed_text_and_image(
+            processor=processor,
+            text=masked_questions,
+            image=batch[DaquarDataCollatorForLanguageModeling.IMAGE_BATCH_PROPERTY],
+        )
+        inputs = batch_to_device(inputs, self.device)
+        mask_token_indices = inputs["input_ids"] == tokenizer.mask_token_id
+        outputs = self.vilt(**inputs)
+        logits = outputs.logits
+        masked_answer_predictions = logits.argmax(dim=-1)
+        masked_answer_predictions = masked_answer_predictions[mask_token_indices]
+        return [tokenizer.decode(prediction) for prediction in masked_answer_predictions]

@@ -190,7 +190,14 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         )
         inputs = batch_to_device(inputs, self.device)
         mask_token_indices = inputs["input_ids"] == tokenizer.mask_token_id
-        outputs = self.vilt(**inputs)
+        outputs = self.vilt(
+            input_ids=batch["input_ids"],
+            token_type_ids=batch["token_type_ids"],
+            attention_mask=batch["attention_mask"],
+            pixel_values=batch["pixel_values"],
+            pixel_mask=batch["pixel_mask"],
+            return_dict=True,
+        )
         logits = outputs.logits
         masked_answer_predictions = logits.argmax(dim=-1)
         masked_answer_predictions = masked_answer_predictions[mask_token_indices]

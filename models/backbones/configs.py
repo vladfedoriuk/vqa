@@ -6,6 +6,7 @@ import torch
 from transformers import (
     AutoImageProcessor,
     AutoModel,
+    AutoProcessor,
     AutoTokenizer,
     BatchEncoding,
     BatchFeature,
@@ -16,6 +17,7 @@ from transformers import (
     PreTrainedTokenizer,
     ViltModel,
     ViltProcessor,
+    VisionEncoderDecoderModel,
 )
 from transformers.image_processing_utils import BaseImageProcessor
 
@@ -391,7 +393,6 @@ class ViLTMLMConfig(BackboneConfig):  # TODO: Refactor the backbone configs - de
             return_token_type_ids=True,
             return_attention_mask=True,
             return_special_tokens_mask=True,
-            do_pad=True,
         )
 
     @classmethod
@@ -423,3 +424,16 @@ class ViLTVQAConfig(ViLTMLMConfig):
     def get_processor(cls) -> ViltProcessor:
         """Get the processor."""
         return ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+
+
+@registry.register(AvailableBackbones.VIT_GPT2)
+@dataclasses.dataclass(frozen=True)
+class ViTGPT2Config(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_processor(cls):
+        return AutoProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")

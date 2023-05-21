@@ -14,6 +14,7 @@ import typer
 import wandb
 
 from callbacks.checkpoints import get_model_checkpoint
+from callbacks.sample import MaskedLanguageModelingPredictionSamplesCallback
 from lightning_modules.vilt.mlm import ViLTMaskedLanguageModelingModule
 from loggers.wandb import get_lightning_logger
 from models.backbones import AvailableBackbones
@@ -66,6 +67,7 @@ def experiment(
         max_epochs=epochs,
         callbacks=[
             get_model_checkpoint(file_name=run_name),
+            MaskedLanguageModelingPredictionSamplesCallback(),
         ],
         accumulate_grad_batches=4,
     )

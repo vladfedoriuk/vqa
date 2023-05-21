@@ -48,6 +48,13 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         return torch.optim.AdamW(self.parameters(), lr=1e-5, weight_decay=1e-5)
 
     def _shared_eval_step(self, batch: BatchType, prefix: str) -> dict[str, Any]:
+        """
+        Perform a shared evaluation step.
+
+        :param batch: The batch.
+        :param prefix: The prefix.
+        :return: The loss and logits.
+        """
         outputs = self.vilt(
             input_ids=batch["input_ids"],
             token_type_ids=batch["token_type_ids"],
@@ -159,7 +166,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :return: The batch.
         """
         instance = cast(pl.LightningModule, self)
-        return self._collator_fn(batch_to_device(batch, instance.device))
+        return batch_to_device(self._collator_fn(batch_to_device(batch, instance.device)), instance.device)
 
     def make_masked_answer_prediction(
         self,

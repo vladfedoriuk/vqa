@@ -183,9 +183,12 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
         tokenizer = self.backbone_config.get_tokenizer()
         prompts = [f"question: {question} answer: " for question in questions]
-        decoder_inputs = self.backbone_config.get_tokenized_text(
-            tokenizer=tokenizer,
-            text=prompts,
+        decoder_inputs = batch_to_device(
+            self.backbone_config.get_tokenized_text(
+                tokenizer=tokenizer,
+                text=prompts,
+            ),
+            self.device,
         )
         encoder_inputs = batch_to_device(
             self.backbone_config.get_processed_image(
@@ -193,13 +196,9 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             ),
             self.device,
         )
-        decoder_inputs = batch_to_device(decoder_inputs, self.device)
         backbone_model = cast(GenerationMixin, self.backbone_model)
         outputs = backbone_model.generate(
             **encoder_inputs,
             decoder_input_ids=decoder_inputs["input_ids"],
-            return_dict_in_generate=True,
-            do_sample=False,
-            num_beams=4,
         )
         return tokenizer.batch_decode(outputs.sequences, skip_special_tokens=True)

@@ -201,6 +201,5 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             return_dict_in_generate=True,
             do_sample=False,
             num_beams=4,
-            max_length=100,
         )
         return tokenizer.batch_decode(outputs.sequences, skip_special_tokens=True)

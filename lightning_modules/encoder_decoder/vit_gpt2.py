@@ -187,10 +187,13 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             tokenizer=tokenizer,
             text=prompts,
         )
+        encoder_inputs = self.backbone_config.get_processed_image(
+            processor=self.image_processor, image=batch[DaquarDataCollatorForLanguageModeling.IMAGE_BATCH_PROPERTY]
+        )
         decoder_inputs = batch_to_device(decoder_inputs, self.device)
         backbone_model = cast(GenerationMixin, self.backbone_model)
         outputs = backbone_model.generate(
-            pixel_values=batch["pixel_values"],
+            **encoder_inputs,
             decoder_input_ids=decoder_inputs["input_ids"],
             return_dict_in_generate=True,
             do_sample=False,

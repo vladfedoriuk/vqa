@@ -12,7 +12,7 @@ from collators.daquar import DaquarDataCollatorForLanguageModeling
 from config.env import NUM_WORKERS
 from models.backbones.configs import ViTGPT2Config
 from transforms.noop import noop
-from utils.batch import batch_to_device, convert_batch_to_dict_of_features
+from utils.batch import batch_to_device, convert_batch_to_mapping_of_features
 from utils.datasets.daquar import load_daquar_datasets
 from utils.types import BatchType, StageType
 
@@ -179,7 +179,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         :param batch: The batch.
         :return: The generated answer.
         """
-        batch = convert_batch_to_dict_of_features(batch)
+        batch = convert_batch_to_mapping_of_features(batch)
         questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
         tokenizer = self.backbone_config.get_tokenizer()
         prompts = [f"question: {question} answer: " for question in questions]
@@ -191,7 +191,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         backbone_model = cast(GenerationMixin, self.backbone_model)
         outputs = backbone_model.generate(
             pixel_values=batch["pixel_values"],
-            decoder_input_ids=decoder_inputs.input_ids,
+            decoder_input_ids=decoder_inputs["input_ids"],
             return_dict_in_generate=True,
             do_sample=False,
             num_beams=4,

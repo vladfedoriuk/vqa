@@ -14,8 +14,8 @@ from collators import (
 )
 from models.backbones import BackboneConfig
 from utils.batch import (
-    convert_batch_to_dict_of_features,
-    convert_batch_to_list_of_dicts,
+    convert_batch_to_mapping_of_features,
+    convert_batch_to_sequence_of_mappings,
 )
 from utils.datasets import AvailableDatasets
 from utils.datasets.daquar import DaquarAnswerSpace, load_images_for_batch
@@ -117,7 +117,7 @@ class DaquarDataCollatorForLanguageModeling(
         :return: The collated batch.
         """
         # Convert the batch to a dict of features
-        batch = convert_batch_to_dict_of_features(batch)
+        batch = convert_batch_to_mapping_of_features(batch)
         # Backup the question
         batch = self._backup_question(batch)
         # Create the question/answer prompt
@@ -126,7 +126,7 @@ class DaquarDataCollatorForLanguageModeling(
         batch = super().__call__(batch)
         # Add the masked tokens, labels and token masks
         features = self.data_collator_for_language_modeling(
-            convert_batch_to_list_of_dicts(
+            convert_batch_to_sequence_of_mappings(
                 {
                     "input_ids": batch["input_ids"],
                     "attention_mask": batch["attention_mask"],

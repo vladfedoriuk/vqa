@@ -24,7 +24,7 @@ from loggers.wandb import (
     log_daquar_vilt_mlm_predictions_as_table,
     log_vqa_v2_predictions_as_table,
 )
-from utils.batch import convert_batch_to_list_of_dicts
+from utils.batch import convert_batch_to_sequence_of_mappings
 from utils.datasets import AvailableDatasets
 from utils.datasets.answer_space import AnswerSpace
 
@@ -57,7 +57,7 @@ class PredictionSamplesCallback(Callback):
         :param batch: The batch.
         :return: The batch subset.
         """
-        batch = convert_batch_to_list_of_dicts(batch)
+        batch = convert_batch_to_sequence_of_mappings(batch)
         return [batch[idx] for idx in self._select_num_samples(batch)]
 
 

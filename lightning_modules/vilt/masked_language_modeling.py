@@ -12,7 +12,7 @@ from collators.daquar import DaquarDataCollatorForMaskedLanguageModeling
 from config.env import NUM_WORKERS
 from models.backbones.configs import ViLTMLMConfig
 from transforms.noop import noop
-from utils.batch import batch_to_device, convert_batch_to_dict_of_features
+from utils.batch import batch_to_device, convert_batch_to_mapping_of_features
 from utils.datasets.daquar import load_daquar_datasets
 from utils.types import BatchType, StageType
 
@@ -182,7 +182,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :param batch: The batch.
         :return: The masked answer prediction.
         """
-        batch = convert_batch_to_dict_of_features(batch)
+        batch = convert_batch_to_mapping_of_features(batch)
         questions = batch[DaquarDataCollatorForMaskedLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
         processor = ViLTMLMConfig.get_processor()
         tokenizer = ViLTMLMConfig.get_tokenizer()

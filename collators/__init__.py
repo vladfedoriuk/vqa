@@ -12,7 +12,7 @@ from transformers.image_processing_utils import BaseImageProcessor
 
 from models.backbones import BackboneConfig
 from transforms.noop import noop
-from utils.batch import convert_batch_to_dict_of_features
+from utils.batch import convert_batch_to_mapping_of_features
 from utils.datasets import AvailableDatasets
 from utils.datasets.answer_space import AnswerSpace
 from utils.registry import Registry
@@ -68,7 +68,7 @@ class MultiModalCollator(Generic[T], abc.ABC):
         :param batch: The batch.
         :return: The collated batch.
         """
-        batch = convert_batch_to_dict_of_features(batch)
+        batch = convert_batch_to_mapping_of_features(batch)
         # We include the batch as a feature so
         # that we can access the image and question later.
         return functools.reduce(

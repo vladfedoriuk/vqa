@@ -200,6 +200,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         outputs = backbone_model.generate(
             **encoder_inputs,
             decoder_input_ids=decoder_inputs["input_ids"],
+            decoder_attention_mask=decoder_inputs["attention_mask"],
             return_dict_in_generate=True,
             max_length=40,
             # do_sample=True, # TODO: Use beam search

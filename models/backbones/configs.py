@@ -461,7 +461,8 @@ class ViTGPT2Config(BackboneConfig):
         return tokenizer(
             text=text,
             return_tensors="pt",
-            padding="max_length",
+            padding=True,
+            max_length=100,
             truncation=True,
             return_token_type_ids=True,
             return_attention_mask=True,

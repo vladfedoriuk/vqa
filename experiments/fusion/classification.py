@@ -21,10 +21,9 @@ from typing import Optional, cast
 import lightning.pytorch as pl
 import typer
 import wandb
-from lightning.pytorch.strategies import DDPStrategy
 
 from callbacks.checkpoints import get_model_checkpoint
-from callbacks.sample import PredictionSamplesCallback
+from callbacks.sample import ClassificationPredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
 from lightning_modules.fusion.classification import MultiModalFusionClassificationModule
@@ -39,7 +38,11 @@ from utils.datasets import registry as datasets_registry
 from utils.datasets.answer_space import registry as answer_space_registry
 from utils.logger import compose_fusion_classification_experiment_run_name
 from utils.registry import initialize_registries
-from utils.torch import ensure_reproducibility, freeze_model_parameters
+from utils.torch import (
+    ensure_reproducibility,
+    freeze_model_parameters,
+    get_lightning_trainer_strategy,
+)
 
 
 @initialize_registries()
@@ -139,18 +142,15 @@ def experiment(
         logger=logger,
         devices=1,
         num_nodes=1,
-        strategy=DDPStrategy(
-            find_unused_parameters=True
-        ),  # TODO: Read it from env vars - the env var will be set in scripts.
-        # - Add a new config setting for the strategy.
+        strategy=get_lightning_trainer_strategy(),
         max_epochs=epochs,
         callbacks=[
-            PredictionSamplesCallback(
+            ClassificationPredictionSamplesCallback(
                 answer_space=answer_space,
                 dataset=dataset,
             ),
             get_model_checkpoint(
-                file_name=f"{run_name}.ckpt",
+                file_name=run_name,
             ),
         ],
         accumulate_grad_batches=32,

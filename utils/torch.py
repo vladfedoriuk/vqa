@@ -10,9 +10,12 @@ from typing import Any
 
 import torch
 from lightning import seed_everything
+from lightning.pytorch.strategies import DDPStrategy
 from torch import nn
 from torch.types import Device
 from transformers import BatchEncoding, BatchFeature
+
+from utils.config import load_env_config
 
 
 def ensure_reproducibility(seed: int = 42) -> None:
@@ -116,7 +119,7 @@ class DeviceAwareModule(nn.Module):
         """
         super().__init__()
         # To ensure there is at least one parameter on the module.
-        self.__hidden_parameter = nn.Parameter(torch.tensor(0.5))
+        self._hidden_parameter = nn.Parameter(torch.tensor(0.5))
 
     @property
     def device(self) -> Device:
@@ -131,6 +134,19 @@ class DeviceAwareModule(nn.Module):
         return devices.pop()
 
 
+def get_lightning_trainer_strategy() -> str | DDPStrategy:
+    """
+    Get the strategy for the Pytorch Lightning trainer.
+
+    :return: The strategy for the Pytorch Lightning trainer.
+    """
+    with load_env_config() as env_config:
+        if env_config.USE_DDP:
+            return DDPStrategy(find_unused_parameters=True)
+        else:
+            return "auto"
+
+
 __all__ = [
     "ensure_reproducibility",
     "squeeze_dict_of_tensors",
@@ -139,4 +155,5 @@ __all__ = [
     "backbone_name_to_kebab_case",
     "initialize_linear_weights",
     "DeviceAwareModule",
+    "get_lightning_trainer_strategy",
 ]

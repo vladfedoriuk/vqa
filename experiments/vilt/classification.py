@@ -15,10 +15,9 @@ from typing import cast
 import lightning.pytorch as pl
 import typer
 import wandb
-from lightning.pytorch.strategies import DDPStrategy
 
 from callbacks.checkpoints import get_model_checkpoint
-from callbacks.sample import PredictionSamplesCallback
+from callbacks.sample import ClassificationPredictionSamplesCallback
 from collators import ClassificationCollator
 from collators import registry as collators_registry
 from lightning_modules.vilt.classification import ViLTClassificationModule
@@ -29,9 +28,9 @@ from utils.config import load_env_config
 from utils.datasets import AvailableDatasets
 from utils.datasets import registry as datasets_registry
 from utils.datasets.answer_space import registry as answer_space_registry
-from utils.logger import compose_vilt_classification_experiment_run_name
+from utils.logger import compose_vilt_experiment_run_name
 from utils.registry import initialize_registries
-from utils.torch import ensure_reproducibility
+from utils.torch import ensure_reproducibility, get_lightning_trainer_strategy
 
 
 @initialize_registries()
@@ -43,7 +42,7 @@ def experiment(
     batch_size: int = 64,
 ):
     """
-    Run the simple concatenation fusion experiment.
+    Run the ViLT classification experiment.
 
     :param vilt_backbone: The ViLT backbone to use.
     :param dataset: The name of the dataset to use.
@@ -67,7 +66,7 @@ def experiment(
     datasets_loading_fn = datasets_registry.get(dataset)
 
     # Initialize the logger.
-    run_name = compose_vilt_classification_experiment_run_name(
+    run_name = compose_vilt_experiment_run_name(
         vilt_backbone=vilt_backbone,
         dataset=dataset,
         epochs=epochs,
@@ -93,19 +92,14 @@ def experiment(
         logger=logger,
         devices=1,
         num_nodes=1,
-        strategy=DDPStrategy(
-            find_unused_parameters=True
-        ),  # TODO: Read it from env vars - the env var will be set in scripts.
-        # - Add a new config setting for the strategy.
+        strategy=get_lightning_trainer_strategy(),
         max_epochs=epochs,
         callbacks=[
-            PredictionSamplesCallback(
+            ClassificationPredictionSamplesCallback(
                 answer_space=answer_space,
                 dataset=dataset,
             ),
-            get_model_checkpoint(
-                file_name=f"{run_name}.ckpt",
-            ),
+            get_model_checkpoint(file_name=run_name),
         ],
         accumulate_grad_batches=4,
     )

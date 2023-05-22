@@ -13,9 +13,12 @@ from transformers import (
     CLIPModel,
     CLIPProcessor,
     DeiTModel,
+    GPT2TokenizerFast,
     PreTrainedTokenizer,
     ViltModel,
     ViltProcessor,
+    VisionEncoderDecoderModel,
+    ViTImageProcessor,
 )
 from transformers.image_processing_utils import BaseImageProcessor
 
@@ -319,7 +322,7 @@ class CLIPConfig(ImageEncoderMixin, TextEncoderMixin, BackboneConfig):
 
 @registry.register(AvailableBackbones.ViLT_MLM)
 @dataclasses.dataclass(frozen=True)
-class ViLTMLMConfig(BackboneConfig):
+class ViLTMLMConfig(BackboneConfig):  # TODO: Refactor the backbone configs - design proper inheritance and interfaces
     """
     ViLT-MLM is a transformer-based model for multimodal pretraining.
 
@@ -354,6 +357,7 @@ class ViLTMLMConfig(BackboneConfig):
     @classmethod
     def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
         """Get the image features from processor."""
+        # TODO: rename the processor to image_processor
         return processor(
             images=image,
             return_tensors="pt",
@@ -365,6 +369,25 @@ class ViLTMLMConfig(BackboneConfig):
         """Get the tokenized text."""
         return tokenizer(
             text=text,
+            return_tensors="pt",
+            padding="max_length",
+            truncation=True,
+            return_token_type_ids=True,
+            return_attention_mask=True,
+            return_special_tokens_mask=True,
+        )
+
+    @classmethod
+    def get_processed_text_and_image(
+        cls,
+        processor: ViltProcessor,
+        text: str | list[str],
+        image: ImageType | Sequence[ImageType],  # TODO: rename to images everywhere
+    ) -> BatchEncoding:
+        """Get the processed text and image."""
+        return processor(
+            text=text,
+            images=image,
             return_tensors="pt",
             padding="max_length",
             truncation=True,
@@ -391,7 +414,7 @@ class ViLTMLMConfig(BackboneConfig):
 @registry.register(AvailableBackbones.ViLT_VQA)
 @dataclasses.dataclass(frozen=True)
 class ViLTVQAConfig(ViLTMLMConfig):
-    """ViLT finetuned on VQA."""
+    """ViLT fine-tuned on VQA."""
 
     @classmethod
     def get_model(cls):
@@ -402,3 +425,46 @@ class ViLTVQAConfig(ViLTMLMConfig):
     def get_processor(cls) -> ViltProcessor:
         """Get the processor."""
         return ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+
+
+@registry.register(AvailableBackbones.VIT_GPT2)
+@dataclasses.dataclass(frozen=True)
+class ViTGPT2Config(BackboneConfig):
+    """ViT-GPT2 is a transformer Encoder-Decoder model for image captioning."""
+
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_tokenizer(cls):
+        """Get the tokenizer."""
+        return GPT2TokenizerFast.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_image_processor(cls):
+        """Get the image processor."""
+        return ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+
+    @classmethod
+    def get_processed_image(cls, processor: BaseImageProcessor, image: ImageType | Sequence[ImageType]) -> BatchFeature:
+        """Get the image features from processor."""
+        return processor(
+            images=image,
+            return_tensors="pt",
+        )
+
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
+        """Get the tokenized text."""
+        return tokenizer(
+            text=text,
+            return_tensors="pt",
+            padding=True,
+            max_length=40,
+            truncation=True,
+            return_token_type_ids=True,
+            return_attention_mask=True,
+            return_special_tokens_mask=True,
+        )

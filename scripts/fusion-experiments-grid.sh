@@ -2,7 +2,7 @@
 
 for dataset in daquar vqa_v2_sample
   do
-    for fusion in concatenation-fusion attention-fusion
+    for fusion in concatenation-fusion attention-fusion deep-set-fusion deep-set-transformer-fusion
       do
         for image_encoder_backbone in facebook/dino-vitb16 facebook/deit-base-distilled-patch16-224 microsoft/beit-base-patch16-224-pt22k
           do
@@ -13,7 +13,7 @@ for dataset in daquar vqa_v2_sample
                     --text-encoder-backbone "$text_encoder_backbone" \
                     --fusion "$fusion" \
                     --dataset "$dataset" \
-                    --epochs 100
+                    --epochs 30
               done
           done
       done

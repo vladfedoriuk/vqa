@@ -45,9 +45,12 @@ class AvailableBackbones(str, RegistryKey):
     ViLT_MLM = "dandelin/vilt-b32-mlm"
     # Model from https://huggingface.co/dandelin/vilt-b32-finetuned-vqa
     ViLT_VQA = "dandelin/vilt-b32-finetuned-vqa"
+    # Model from https://huggingface.co/nlpconnect/vit-gpt2-image-captioning
+    VIT_GPT2 = "nlpconnect/vit-gpt2-image-captioning"
 
+    # TODO: differentiate between encoder backbones and encoder-decoder backbones
     @classproperty
-    def image_backbones(cls) -> tuple["AvailableBackbones", ...]:
+    def image_backbones(cls) -> tuple["AvailableBackbones", ...]:  # TODO: Refactor this - move to variables
         """Get the image backbones."""
         return (
             cls.VIT,
@@ -70,7 +73,12 @@ class AvailableBackbones(str, RegistryKey):
     @classproperty
     def multimodal_backbones(cls) -> tuple["AvailableBackbones", ...]:
         """Get the multimodal backbones."""
-        return cls.CLIP, cls.ViLT_MLM, cls.ViLT_VQA
+        return (
+            cls.CLIP,
+            cls.ViLT_MLM,
+            cls.ViLT_VQA,
+            cls.VIT_GPT2,
+        )
 
 
 class BackboneConfig:

@@ -1,4 +1,5 @@
 """Batch-related utilities."""
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import torch
@@ -26,7 +27,7 @@ def batch_to_device(batch: BatchType, device: Device) -> BatchType:
         return batch
 
 
-def convert_batch_to_dict_of_features(batch: list[dict[str, Any]]) -> dict[str, list[Any]]:
+def convert_batch_to_mapping_of_features(batch: list[Mapping[str, Any]]) -> Mapping[str, list[Any]]:
     """
     Convert the batch to a dict of features.
 
@@ -37,7 +38,7 @@ def convert_batch_to_dict_of_features(batch: list[dict[str, Any]]) -> dict[str, 
     :param batch: The batch.
     :return: The list.
     """
-    if isinstance(batch, dict):
+    if isinstance(batch, Mapping):
         return batch
     elif not batch:
         return {}
@@ -45,7 +46,7 @@ def convert_batch_to_dict_of_features(batch: list[dict[str, Any]]) -> dict[str, 
         return {key: [sample[key] for sample in batch] for key in batch[0].keys()}
 
 
-def convert_batch_to_list_of_dicts(batch: dict[str, list[Any]]) -> list[dict[str, Any]]:
+def convert_batch_to_sequence_of_mappings(batch: Mapping[str, Sequence[Any]]) -> Sequence[Mapping[str, Any]]:
     """
     Convert the batch to a list of dicts.
 
@@ -55,7 +56,7 @@ def convert_batch_to_list_of_dicts(batch: dict[str, list[Any]]) -> list[dict[str
     :param batch: The batch.
     :return: The list.
     """
-    if isinstance(batch, list):
+    if isinstance(batch, Sequence):
         return batch
     elif not batch:
         return []

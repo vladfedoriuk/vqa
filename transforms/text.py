@@ -13,6 +13,7 @@ from transformers import (
 )
 
 from transforms.noop import Noop
+from utils.batch import batch_to_device
 from utils.torch import DeviceAwareModule
 from utils.types import BatchTextTransformsType, BatchType, StageType
 
@@ -72,6 +73,8 @@ class QuestionAugmentationModule(DeviceAwareModule):
         :param model: The model to use.
         :return: The translated texts.
         """
+        # TODO: Cleanup these .to() calls and batch_to_device() calls.
+        #  Make sure that the model is on the correct device.
         processed_data = tokenizer(
             text=text,
             return_tensors="pt",
@@ -81,12 +84,13 @@ class QuestionAugmentationModule(DeviceAwareModule):
         model.to(self.device)
         model = cast(GenerationMixin, model)
         outputs = model.generate(
-            input_ids=processed_data["input_ids"].to(self.device),
+            input_ids=batch_to_device(processed_data["input_ids"], device=self.device),
             do_sample=True,
             top_k=100,
             top_p=0.95,
+            max_length=100,  # TODO: Review these parameters.
         )
-        return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
+        return [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]  # TODO: Maybe batch_decode()?
 
 
 def default_text_batch_transforms_factory() -> Mapping[StageType, BatchTextTransformsType]:

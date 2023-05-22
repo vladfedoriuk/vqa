@@ -462,7 +462,7 @@ class ViTGPT2Config(BackboneConfig):
             text=text,
             return_tensors="pt",
             padding=True,
-            max_length=100,
+            max_length=40,
             truncation=True,
             return_token_type_ids=True,
             return_attention_mask=True,

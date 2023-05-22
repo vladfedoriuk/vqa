@@ -186,7 +186,9 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         questions = batch[DaquarDataCollatorForMaskedLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
         processor = ViLTMLMConfig.get_processor()
         tokenizer = ViLTMLMConfig.get_tokenizer()
-        masked_questions = [f"question: {question} answer: {tokenizer.mask_token}" for question in questions]
+        masked_questions = [
+            f"answer the following question: {question} answer: {tokenizer.mask_token}" for question in questions
+        ]
         inputs = ViLTMLMConfig.get_processed_text_and_image(
             processor=processor,
             text=masked_questions,

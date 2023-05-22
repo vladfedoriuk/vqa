@@ -182,7 +182,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         batch = convert_batch_to_mapping_of_features(batch)
         questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
         tokenizer = self.backbone_config.get_tokenizer()
-        prompts = [f"question: {question} answer: " for question in questions]
+        prompts = [f"answer the following question: {question} answer: " for question in questions]
         decoder_inputs = batch_to_device(
             self.backbone_config.get_tokenized_text(
                 tokenizer=tokenizer,

@@ -104,7 +104,7 @@ class DaquarDataCollatorForLanguageModeling(
         """
         # Create the question/answer prompt
         batch[self.QUESTION_ANSWER_PROMPT_BATCH_PROPERTY] = [
-            f"question: {question} answer: {answer}"
+            f"answer the following question: {question} answer: {answer}"
             for question, answer in zip(batch[self.QUESTION_BATCH_PROPERTY], batch[self.ANSWER_BATCH_PROPERTY])
         ]
         return batch

@@ -68,7 +68,7 @@ def experiment(
             get_model_checkpoint(file_name=run_name),
             CausalLanguageModelingPredictionSamplesCallback(),
         ],
-        accumulate_grad_batches=4,
+        accumulate_grad_batches=16,
     )
     model = ViTGPT2EncoderDecoderModule(
         batch_size=batch_size,

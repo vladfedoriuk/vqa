@@ -6,13 +6,15 @@ from typing import Any, Literal, TypedDict, cast
 import datasets
 import lightning.pytorch as pl
 import torch
+from pytorch_lightning.loggers import WandbLogger
 from torch.utils.data import DataLoader
-from torchmetrics.functional import accuracy
+from torchmetrics.functional import accuracy, confusion_matrix
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
 from collators import ClassificationCollator
 from config.env import NUM_WORKERS
+from loggers.wandb import log_confusion_matrix
 from models.backbones import BackboneConfig
 from utils.batch import batch_to_device
 from utils.datasets import DatasetsLoadingFunctionType
@@ -114,6 +116,17 @@ class VQAClassificationMixin:
             },
             sync_dist=True,
             batch_size=self.batch_size,
+        )
+        cm = confusion_matrix(
+            logits,
+            batch["answer_label"],
+            num_classes=self.classes_num,
+            task="multiclass",
+        )
+        log_confusion_matrix(
+            cast(WandbLogger, instance.logger),
+            cm,
+            caption=f"{prefix}_confusion_matrix",
         )
 
     def training_step(self, batch: BatchType, batch_idx: int):

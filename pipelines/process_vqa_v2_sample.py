@@ -71,6 +71,7 @@ def get_answers_space(
     train_data: datasets.Dataset,
     val_data: datasets.Dataset,
     test_data: datasets.Dataset,
+    drop_duplicates: bool = True,
 ):
     """
     Get the answers space for the VQA V2 sample dataset.
@@ -78,6 +79,7 @@ def get_answers_space(
     :param train_data: The train dataset.
     :param val_data: The validation dataset.
     :param test_data: The test dataset.
+    :param drop_duplicates: Whether to drop duplicates.
     :return: The answers space.
     """
     logger.info("Getting the answers space...")
@@ -96,9 +98,12 @@ def get_answers_space(
                     else ()
                 ),
             ]
-        ).unique(),
+        ),
         columns=["answer"],
-    ).drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+    )
+    # Drop the duplicates.
+    if drop_duplicates:
+        answers.drop_duplicates(subset=["answer"], keep="first", ignore_index=True, inplace=True)
     # Split the answers containing multiple answers into multiple rows.
     return flatten_multiple_answers(answers).rename_axis("answer_id").reset_index()
 

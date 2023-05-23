@@ -16,7 +16,6 @@ from typing import Any, Literal
 import torch
 import wandb
 from lightning.pytorch.loggers.wandb import WandbLogger
-from wandb.sdk.wandb_run import Run
 
 from collators.daquar import (
     DaquarDataCollatorForLanguageModeling,
@@ -52,18 +51,21 @@ def get_lightning_logger(
     )
 
 
-def log_confusion_matrix(run: Run, cm: torch.Tensor, caption: str):
+def log_confusion_matrix(logger: WandbLogger, cm: torch.Tensor, caption: str):
     """
     Log the confusion matrix to Weights & Biases.
 
-    :param run: The run.
+    :param logger: The logger.
     :param cm: The confusion matrix (as obtained from :py:func:`torchmetrics.functional.confusion_matrix`).
     :param caption: The caption.
     :return:
     """
     cm = cm.cpu().numpy().squeeze()
-    image = wandb.Image(cm, caption=caption)
-    run.log({"confusion_matrix": image})
+    logger.log_image(
+        key="confusion_matrix",
+        images=[cm],
+        caption=caption,
+    )
 
 
 def log_vqa_v2_predictions_as_table(

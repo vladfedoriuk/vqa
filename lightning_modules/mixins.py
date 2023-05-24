@@ -121,12 +121,13 @@ class VQAClassificationMixin:
             logits,
             batch["answer_label"],
             num_classes=self.classes_num,
-            task="multiclass",
+            normalize="true",
+            type="multiclass",
         )
         log_confusion_matrix(
             cast(WandbLogger, instance.logger),
             cm,
-            caption=f"{prefix}_confusion_matrix",
+            key=f"{prefix}_confusion_matrix",
         )
 
     def training_step(self, batch: BatchType, batch_idx: int):

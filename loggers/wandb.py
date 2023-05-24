@@ -51,20 +51,20 @@ def get_lightning_logger(
     )
 
 
-def log_confusion_matrix(logger: WandbLogger, cm: torch.Tensor, caption: str):
+def log_confusion_matrix(logger: WandbLogger, cm: torch.Tensor, key: str):
     """
     Log the confusion matrix to Weights & Biases.
 
     :param logger: The logger.
     :param cm: The confusion matrix (as obtained from :py:func:`torchmetrics.functional.confusion_matrix`).
-    :param caption: The caption.
+    :param key: The key.
     :return:
     """
     cm = cm.cpu().numpy().squeeze()
-    logger.log_image(
-        key="confusion_matrix",
-        images=[cm],
-        caption=caption,
+    logger.experiment.log(
+        {
+            "key": wandb.Image(cm, caption="Confusion matrix"),
+        }
     )
 
 

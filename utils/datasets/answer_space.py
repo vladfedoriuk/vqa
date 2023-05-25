@@ -125,6 +125,18 @@ class PandasAnswerSpace(AnswerSpace):
         answers_space = answers_space.merge(self._answers_space, on="answer", how="inner")
         return answers_space
 
+    def _do_drop_answer_duplicates(self) -> pd.DataFrame:
+        """
+        Drop duplicate answers.
+
+        :return: The answers space.
+        """
+        return (
+            self._answers_space.drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+            .rename_axis("answer_id")
+            .reset_index()
+        )
+
     @property
     def answers_space(self) -> pd.DataFrame:
         """
@@ -139,11 +151,8 @@ class PandasAnswerSpace(AnswerSpace):
             if self._keep_n_most_common_answers is not None:
                 self._answers_space = self._do_keep_n_most_common_answers()
             self._add_fake_answer()
-        return (
-            self._answers_space.drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
-            .rename_axis("answer_id")
-            .reset_index()
-        )
+            self._answers_space = self._do_drop_answer_duplicates()
+        return self._answers_space
 
     def __len__(self):
         """

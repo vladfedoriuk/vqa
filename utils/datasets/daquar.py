@@ -115,16 +115,9 @@ class DaquarAnswerSpace(PandasAnswerSpace):
 
         :return: The answer space.
         """
-        return (
-            pd.DataFrame(
-                pd.concat(
-                    [
-                        pd.read_csv(PROCESSED_DAQUAR_PATH / processed_file)
-                        for processed_file in PROCESSED_DAQUAR_DATA_FILES
-                    ],
-                    ignore_index=True,
-                )["answer"].drop_duplicates()
-            )
-            .reset_index(drop=True)
-            .rename_axis("answer_id")
+        return pd.DataFrame(
+            pd.concat(
+                [pd.read_csv(PROCESSED_DAQUAR_PATH / processed_file) for processed_file in PROCESSED_DAQUAR_DATA_FILES],
+                ignore_index=True,
+            )["answer"]
         )

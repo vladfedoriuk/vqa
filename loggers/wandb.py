@@ -63,7 +63,7 @@ def log_confusion_matrix(logger: WandbLogger, cm: torch.Tensor, key: str):
     cm = cm.cpu().numpy().squeeze()
     logger.experiment.log(
         {
-            "key": wandb.Image(cm, caption="Confusion matrix"),
+            key: wandb.Image(cm, caption="Confusion matrix"),
         }
     )
 

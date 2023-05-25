@@ -79,6 +79,9 @@ class VQAClassificationMixin:
     # The collator function.
     _collator_fn: Callable[[list[Any]], Any | None] | None
 
+    # Lightning specific attributes.
+    validation_step_outputs: list[Metrics]
+
     def prepare_data(self) -> None:
         """
         Prepare the data.
@@ -124,13 +127,13 @@ class VQAClassificationMixin:
             batch_size=self.batch_size,
         )
 
-    def on_validation_epoch_end(self, outputs: list[Metrics]):
+    def on_validation_epoch_end(self):
         """
         Perform validation epoch end.
 
-        :param outputs: The outputs.
         :return: None.
         """
+        outputs = self.validation_step_outputs
         instance = cast(pl.LightningModule, self)
         labels = torch.cat([x["labels"] for x in outputs])
         logits = torch.cat([x["logits"] for x in outputs])

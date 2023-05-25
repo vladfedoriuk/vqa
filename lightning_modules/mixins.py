@@ -145,6 +145,7 @@ class VQAClassificationMixin:
             task="multiclass",
         )
         log_confusion_matrix(cast(WandbLogger, instance.logger), cm, key="val_confusion_matrix")
+        self.validation_step_outputs.clear()
 
     def training_step(self, batch: BatchType, batch_idx: int):
         """
@@ -167,6 +168,7 @@ class VQAClassificationMixin:
         :return: The loss and logits.
         """
         eval_step = self._shared_eval_step(batch)
+        self.validation_step_outputs.append(eval_step)
         self._log_metrics(eval_step["loss"], eval_step["logits"], batch, prefix="val")
         return eval_step
 

@@ -89,6 +89,8 @@ class MultiModalFusionClassificationModule(VQAClassificationMixin, pl.LightningM
         self._data = None
         self.learning_rate = lr
 
+        self.validation_step_outputs = []
+
     def _get_embeddings(self, batch: BatchType):
         """
         Get the embeddings.

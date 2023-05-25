@@ -67,6 +67,8 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
 
         self.loss = torch.nn.CrossEntropyLoss()
 
+        self.validation_step_outputs = []
+
     def configure_optimizers(self) -> Any:
         """Configure the optimizers."""
         return torch.optim.AdamW(self.parameters(), lr=1e-5, weight_decay=1e-5)

@@ -124,7 +124,7 @@ class VQAClassificationMixin:
             batch_size=self.batch_size,
         )
 
-    def validation_epoch_end(self, outputs: list[Metrics]):
+    def on_validation_epoch_end(self, outputs: list[Metrics]):
         """
         Perform validation epoch end.
 

@@ -131,11 +131,21 @@ class PandasAnswerSpace(AnswerSpace):
 
         :return: The answers space.
         """
-        return (
-            self._answers_space.drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
-            .rename_axis("answer_id")
-            .reset_index()
-        )
+        return self._answers_space.drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+
+    def _reset_index(self):
+        """
+        Reset the index of the answers space.
+
+        Make the answer_id the index of the answers space.
+        Drop the old index and the answer_id column (if exists).
+        :return: The answers space.
+        """
+        answers_space = self._answers_space
+        answers_space = answers_space.reset_index(drop=True)
+        if "answer_id" in answers_space.columns:
+            answers_space = answers_space.drop(columns=["answer_id"])
+        return answers_space.rename_axis("answer_id")
 
     @property
     def answers_space(self) -> pd.DataFrame:

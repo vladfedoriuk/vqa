@@ -99,6 +99,20 @@ def load_daquar_datasets() -> datasets.DatasetDict:
     )
 
 
+def load_daquar_answer_space() -> pd.DataFrame:
+    """
+    Load the answer space for the DAQUAR dataset.
+
+    :return: The answer space (as a pandas DataFrame).
+    """
+    return pd.DataFrame(
+        pd.concat(
+            [pd.read_csv(PROCESSED_DAQUAR_PATH / processed_file) for processed_file in PROCESSED_DAQUAR_DATA_FILES],
+            ignore_index=True,
+        )["answer"]
+    )
+
+
 @answer_space_registry.register(AvailableDatasets.DAQUAR)
 class DaquarAnswerSpace(PandasAnswerSpace):
     """The answer space for the DAQUAR dataset."""
@@ -115,9 +129,4 @@ class DaquarAnswerSpace(PandasAnswerSpace):
 
         :return: The answer space.
         """
-        return pd.DataFrame(
-            pd.concat(
-                [pd.read_csv(PROCESSED_DAQUAR_PATH / processed_file) for processed_file in PROCESSED_DAQUAR_DATA_FILES],
-                ignore_index=True,
-            )["answer"]
-        )
+        return load_daquar_answer_space()

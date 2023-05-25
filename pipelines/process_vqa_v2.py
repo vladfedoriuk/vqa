@@ -20,18 +20,8 @@ def get_raw_answers_space() -> pd.DataFrame:
     )
 
 
-def _clean_answers_space(answers_space: pd.DataFrame) -> pd.DataFrame:
-    """Return the cleaned answers space."""
-    return (
-        flatten_multiple_answers(answers_space)
-        .drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
-        .rename_axis("answer_id")
-        .reset_index()
-    )
-
-
 def save_answers_space(answers_space: pd.DataFrame):
-    """Save the raw answers space for the VQA V2 dataset."""
+    """Save the flattened answers space for the VQA V2 dataset."""
     answers_space.to_json(
         VQA_V2_ANSWERS_SPACE_PATH,
         orient="records",
@@ -41,9 +31,9 @@ def save_answers_space(answers_space: pd.DataFrame):
 def main():
     """Process the VQA V2 dataset."""
     logger.info("Reading the raw VQA V2 dataset...")
-    raw_answers_space = get_raw_answers_space()
+    answers_space = get_raw_answers_space()
     logger.info("Cleaning the answers space...")
-    answers_space = _clean_answers_space(raw_answers_space)
+    answers_space = flatten_multiple_answers(answers_space)
     logger.info("Saving the answers space...")
     save_answers_space(answers_space)
     logger.info("Done!")

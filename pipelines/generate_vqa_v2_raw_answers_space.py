@@ -5,6 +5,7 @@ The raw answers space is the set of all the answers in the dataset.
 """
 import itertools
 import logging
+from functools import lru_cache
 from shutil import copyfileobj
 
 import datasets
@@ -56,6 +57,7 @@ def _get_datasets() -> tuple[datasets.Dataset, datasets.Dataset, datasets.Datase
     )
 
 
+@lru_cache(maxsize=1)
 def include_alternative_answers() -> bool:
     """
     Return whether to include alternative answers.

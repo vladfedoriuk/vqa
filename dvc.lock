@@ -49,8 +49,8 @@ stages:
       md5: 3ca2c6472c2b2161a34e5a03a7815d70
       size: 10548076
     - path: pipelines/generate_vqa_v2_raw_answers_space.py
-      md5: 7c1fc2cc66014f75ce68e1f3d4c4acab
-      size: 4632
+      md5: 7f866f836973af036ea4ffe1453982ed
+      size: 4686
     params:
       params.yaml:
         vqa_v2.answers_space.raw.copy_example: true
@@ -66,9 +66,9 @@ stages:
       md5: 3ca2c6472c2b2161a34e5a03a7815d70
       size: 10548076
     - path: pipelines/process_vqa_v2.py
-      md5: de26ec4d0d7f8f4f87dc88b4b3cfb84a
-      size: 1434
+      md5: 664e4366c5db8e113e3d06bebe2162a5
+      size: 1118
     outs:
     - path: data/processed/vqa_v2/vqa_v2_answers_space.json
-      md5: dabf6d83f31842ac152acf6a6bdedcf8
-      size: 9541940
+      md5: 69f2e04c51ab9aed39217b571eded480
+      size: 6800055

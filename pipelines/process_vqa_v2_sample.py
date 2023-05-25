@@ -7,6 +7,7 @@ https://visualqa.org/index.html
 """
 import itertools
 import logging
+from functools import lru_cache
 from pathlib import Path
 
 import datasets
@@ -55,6 +56,7 @@ def _get_alternative_answers_if_needed(dataset: datasets.Dataset) -> pd.Series:
     return _extract_alternative_answers(dataset) if include_alternative_answers() else pd.Series()
 
 
+@lru_cache(maxsize=1)
 def include_alternative_answers() -> bool:
     """
     Return whether to include alternative answers.
@@ -71,7 +73,6 @@ def get_answers_space(
     train_data: datasets.Dataset,
     val_data: datasets.Dataset,
     test_data: datasets.Dataset,
-    drop_duplicates: bool = True,
 ):
     """
     Get the answers space for the VQA V2 sample dataset.
@@ -79,7 +80,6 @@ def get_answers_space(
     :param train_data: The train dataset.
     :param val_data: The validation dataset.
     :param test_data: The test dataset.
-    :param drop_duplicates: Whether to drop duplicates.
     :return: The answers space.
     """
     logger.info("Getting the answers space...")
@@ -101,11 +101,8 @@ def get_answers_space(
         ),
         columns=["answer"],
     )
-    # Drop the duplicates.
-    if drop_duplicates:
-        answers.drop_duplicates(subset=["answer"], keep="first", ignore_index=True, inplace=True)
     # Split the answers containing multiple answers into multiple rows.
-    return flatten_multiple_answers(answers).rename_axis("answer_id").reset_index()
+    return flatten_multiple_answers(answers)
 
 
 def save_answers_space(answers_space: pd.DataFrame, path: Path):

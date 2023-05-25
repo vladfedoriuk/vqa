@@ -122,7 +122,7 @@ class VQAClassificationMixin:
             batch["answer_label"],
             num_classes=self.classes_num,
             normalize="true",
-            type="multiclass",
+            task="multiclass",
         )
         log_confusion_matrix(
             cast(WandbLogger, instance.logger),

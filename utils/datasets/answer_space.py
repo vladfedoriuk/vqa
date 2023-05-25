@@ -80,9 +80,10 @@ class AnswerSpace(Protocol):
 class PandasAnswerSpace(AnswerSpace):
     """The pandas answer space."""
 
-    def __init__(self):
+    def __init__(self, keep_n_most_common_answers: int | None = None):
         """Initialize the answer space."""
         self._answers_space = None
+        self._keep_n_most_common_answers = keep_n_most_common_answers
 
     def _add_fake_answer(self):
         """
@@ -110,6 +111,20 @@ class PandasAnswerSpace(AnswerSpace):
         """
         raise NotImplementedError
 
+    def _do_keep_n_most_common_answers(self) -> pd.DataFrame:
+        """
+        Keep the n most common answers.
+
+        :return: The answers space.
+        """
+        answers_space = self._answers_space
+        answers_space = answers_space.groupby("answer").size().reset_index(name="count")
+        answers_space = answers_space.sort_values("count", ascending=False)
+        answers_space = answers_space.head(self._keep_n_most_common_answers)
+        answers_space = answers_space.drop(columns=["count"])
+        answers_space = answers_space.merge(self._answers_space, on="answer", how="inner")
+        return answers_space
+
     @property
     def answers_space(self) -> pd.DataFrame:
         """
@@ -120,14 +135,15 @@ class PandasAnswerSpace(AnswerSpace):
         :return: The answers space.
         """
         if self._answers_space is None:
-            self._answers_space = (
-                self._do_load_answers_space()
-                .drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
-                .rename_axis("answer_id")
-                .reset_index()
-            )
+            self._answers_space = self._do_load_answers_space()
+            if self._keep_n_most_common_answers is not None:
+                self._answers_space = self._do_keep_n_most_common_answers()
             self._add_fake_answer()
-        return self._answers_space
+        return (
+            self._answers_space.drop_duplicates(subset=["answer"], keep="first", ignore_index=True)
+            .rename_axis("answer_id")
+            .reset_index()
+        )
 
     def __len__(self):
         """

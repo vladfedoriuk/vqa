@@ -103,6 +103,12 @@ def load_daquar_datasets() -> datasets.DatasetDict:
 class DaquarAnswerSpace(PandasAnswerSpace):
     """The answer space for the DAQUAR dataset."""
 
+    def __init__(self):
+        """Initialize the answer space."""
+        super().__init__(
+            keep_n_most_common_answers=100,
+        )
+
     def _do_load_answers_space(self) -> pd.DataFrame:
         """
         Load the answer space.

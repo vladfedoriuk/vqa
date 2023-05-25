@@ -6,7 +6,7 @@ from typing import Any, Literal, TypedDict, cast
 import datasets
 import lightning.pytorch as pl
 import torch
-from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers.wandb import WandbLogger
 from torch.utils.data import DataLoader
 from torchmetrics.functional import accuracy, confusion_matrix
 from transformers import PreTrainedTokenizer
@@ -27,6 +27,14 @@ from utils.types import (
     SingleImageTransformsType,
     StageType,
 )
+
+
+class Metrics(TypedDict):
+    """The metrics returned by the shared evaluation step."""
+
+    loss: torch.Tensor
+    logits: torch.Tensor
+    labels: torch.Tensor
 
 
 class VQAClassificationMixin:
@@ -80,9 +88,7 @@ class VQAClassificationMixin:
         self.datasets_loading_function()
 
     @abc.abstractmethod
-    def _shared_eval_step(
-        self, batch: BatchType
-    ) -> TypedDict("Metrics", {"loss": torch.Tensor, "logits": torch.Tensor}):
+    def _shared_eval_step(self, batch: BatchType) -> Metrics:
         """
         Perform a shared evaluation step.
 
@@ -117,18 +123,25 @@ class VQAClassificationMixin:
             sync_dist=True,
             batch_size=self.batch_size,
         )
+
+    def validation_epoch_end(self, outputs: list[Metrics]):
+        """
+        Perform validation epoch end.
+
+        :param outputs: The outputs.
+        :return: None.
+        """
+        instance = cast(pl.LightningModule, self)
+        labels = torch.cat([x["labels"] for x in outputs])
+        logits = torch.cat([x["logits"] for x in outputs])
         cm = confusion_matrix(
             logits,
-            batch["answer_label"],
+            labels,
             num_classes=self.classes_num,
             normalize="true",
             task="multiclass",
         )
-        log_confusion_matrix(
-            cast(WandbLogger, instance.logger),
-            cm,
-            key=f"{prefix}_confusion_matrix",
-        )
+        log_confusion_matrix(cast(WandbLogger, instance.logger), cm, key="val_confusion_matrix")
 
     def training_step(self, batch: BatchType, batch_idx: int):
         """

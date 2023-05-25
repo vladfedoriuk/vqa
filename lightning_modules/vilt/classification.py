@@ -100,4 +100,5 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         return {
             "loss": loss,
             "logits": logits,
+            "labels": batch["answer_label"],
         }

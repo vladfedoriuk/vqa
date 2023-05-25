@@ -125,6 +125,7 @@ class MultiModalFusionClassificationModule(VQAClassificationMixin, pl.LightningM
         return {
             "loss": loss,
             "logits": logits,
+            "labels": batch["answer_label"],
         }
 
     def configure_optimizers(self):

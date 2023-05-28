@@ -12,3 +12,4 @@ def download_wordnet():
     import nltk
 
     nltk.download("wordnet")
+    yield

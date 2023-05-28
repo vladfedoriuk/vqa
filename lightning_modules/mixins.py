@@ -162,6 +162,7 @@ class VQAClassificationMixin:
         """
         instance = cast(pl.LightningModule, self)
         true_labels = batch["answer_label"]
+        true_labels = true_labels.detach().cpu().numpy().tolist()
         predicted_labels = torch.argmax(logits, dim=1)
         predicted_labels = predicted_labels.detach().cpu().numpy().tolist()
         true_words = [self.answer_space.answer_id_to_answer(answer_id) for answer_id in true_labels]

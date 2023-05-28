@@ -6,6 +6,7 @@ from typing import Any, Literal, TypedDict, cast
 import datasets
 import lightning.pytorch as pl
 import torch
+from nltk.corpus import wordnet
 from pytorch_lightning.loggers.wandb import WandbLogger
 from torch.utils.data import DataLoader
 from torchmetrics.functional import accuracy, confusion_matrix
@@ -126,6 +127,7 @@ class VQAClassificationMixin:
             sync_dist=True,
             batch_size=self.batch_size,
         )
+        self._log_wu_palmer_similarity(logits, batch, prefix)
 
     def on_validation_epoch_end(self):
         """
@@ -146,6 +148,47 @@ class VQAClassificationMixin:
         )
         log_confusion_matrix(cast(WandbLogger, instance.logger), cm, key="val_confusion_matrix")
         self.validation_step_outputs.clear()
+
+    def _log_wu_palmer_similarity(
+        self, logits: torch.Tensor, batch: BatchType, prefix: Literal["train", "val", "test"]
+    ):
+        """
+        Log the Wu-Palmer similarity between the true and predicted labels.
+
+        :param logits: The logits.
+        :param batch: The batch.
+        :param prefix: The prefix.
+        :return None.
+        """
+        instance = cast(pl.LightningModule, self)
+        true_labels = batch["answer_label"]
+        predicted_labels = torch.argmax(logits, dim=1)
+        true_words = [self.answer_space.answer_id_to_answer(answer_id) for answer_id in true_labels]
+        predicted_words = [self.answer_space.answer_id_to_answer(answer_id) for answer_id in predicted_labels]
+        similarities = [
+            self.wu_palmer_similarity(true_word, predicted_word)
+            for true_word, predicted_word in zip(true_words, predicted_words)
+        ]
+        instance.log_dict(
+            {
+                f"{prefix}_wu_palmer_similarity": torch.tensor(similarities).mean(),
+            },
+            sync_dist=True,
+            batch_size=self.batch_size,
+        )
+
+    @staticmethod
+    def wu_palmer_similarity(word1: str, word2: str):
+        """
+        Compute the Wu-Palmer similarity between two words.
+
+        :param word1: The first word.
+        :param word2: The second word.
+        :return: The Wu-Palmer similarity.
+        """
+        syn1 = wordnet.synsets(word1)[0]
+        syn2 = wordnet.synsets(word2)[0]
+        return syn1.wup_similarity(syn2)
 
     def training_step(self, batch: BatchType, batch_idx: int):
         """

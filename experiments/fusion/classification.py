@@ -32,6 +32,7 @@ from models.backbones import AvailableBackbones, prepare_backbones
 from models.classifiers import default_classifier_factory
 from models.fusions import AvailableFusionModels
 from models.fusions import registry as fusions_registry
+from utils import download_wordnet
 from utils.config import load_env_config
 from utils.datasets import AvailableDatasets
 from utils.datasets import registry as datasets_registry
@@ -47,6 +48,7 @@ from utils.torch import (
 
 @initialize_registries()
 @load_env_config()
+@download_wordnet()
 def experiment(
     image_encoder_backbone: Optional[AvailableBackbones] = None,
     text_encoder_backbone: Optional[AvailableBackbones] = None,

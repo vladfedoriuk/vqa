@@ -188,9 +188,12 @@ class VQAClassificationMixin:
         :param word2: The second word.
         :return: The Wu-Palmer similarity.
         """
-        syn1 = wordnet.synsets(word1)[0]
-        syn2 = wordnet.synsets(word2)[0]
-        return syn1.wup_similarity(syn2)
+        try:
+            syn1 = wordnet.synsets(word1)[0]
+            syn2 = wordnet.synsets(word2)[0]
+            return syn1.wup_similarity(syn2)
+        except IndexError:
+            return 0.0
 
     def training_step(self, batch: BatchType, batch_idx: int):
         """

@@ -51,6 +51,7 @@ class ConfigurableEncoderDecoderModule(pl.LightningModule):
         self.backbone_model = self.backbone_config.get_model()
         self.tokenizer = self.backbone_config.get_tokenizer()
         self.image_processor = self.backbone_config.get_image_processor()
+
         self.batch_size = batch_size
 
         self._data: dict[datasets.Split, datasets.Dataset] = {}

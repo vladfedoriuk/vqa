@@ -50,7 +50,7 @@ class AvailableBackbones(str, RegistryKey):
     # The ViT-BERT encoder-decoder model.
     # The cross-attention is used to fuse the image and text representations.
     # Model from https://huggingface.co/docs/transformers/model_doc/vision-text-dual-encoder
-    DEIT_BERT = "facebook/deit-base-distilled-patch16-224-bert-base-uncased"
+    ViT_BERT = "google/vit-base-patch16-224-in21k-bert-base-uncased"
 
     # TODO: differentiate between encoder backbones and encoder-decoder backbones
     @classproperty
@@ -82,7 +82,7 @@ class AvailableBackbones(str, RegistryKey):
             cls.ViLT_MLM,
             cls.ViLT_VQA,
             cls.VIT_GPT2,
-            cls.DEIT_BERT,
+            cls.ViT_BERT,
         )
 
 

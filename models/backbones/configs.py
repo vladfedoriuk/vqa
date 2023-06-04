@@ -484,8 +484,12 @@ class ViTBertConfig(VITConfig, BERTConfig):
     @classmethod
     def get_model(cls):
         """Get the model."""
+        tokenizer = cls.get_tokenizer()
         return VisionEncoderDecoderModel.from_encoder_decoder_pretrained(
-            "google/vit-base-patch16-224-in21k", "bert-base-uncased"
+            "google/vit-base-patch16-224-in21k",
+            "bert-base-uncased",
+            decoder_start_token_id=tokenizer.cls_token_id,
+            pad_token_id=tokenizer.pad_token_id,
         )
 
     @classmethod

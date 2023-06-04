@@ -54,6 +54,11 @@ class ConfigurableEncoderDecoderModule(pl.LightningModule):
 
         self.batch_size = batch_size
 
+        if self.backbone_model.config.decoder_start_token_id is None:
+            self.backbone_model.config.decoder_start_token_id = self.tokenizer.cls_token_id
+        if self.backbone_model.config.pad_token_id is None:
+            self.backbone_model.config.pad_token_id = self.tokenizer.pad_token_id
+
         self._data: dict[datasets.Split, datasets.Dataset] = {}
         self._collator_fn: ClassificationCollator | None = None
 

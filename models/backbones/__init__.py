@@ -49,7 +49,8 @@ class AvailableBackbones(str, RegistryKey):
     VIT_GPT2 = "nlpconnect/vit-gpt2-image-captioning"
     # The ViT-BERT encoder-decoder model.
     # The cross-attention is used to fuse the image and text representations.
-    DEIT_DISTILBERT = "deit-distilbert-encoder-decoder"
+    # Model from https://huggingface.co/docs/transformers/model_doc/vision-text-dual-encoder
+    DEIT_BERT = "facebook/deit-base-distilled-patch16-224-bert-base-uncased"
 
     # TODO: differentiate between encoder backbones and encoder-decoder backbones
     @classproperty
@@ -81,7 +82,7 @@ class AvailableBackbones(str, RegistryKey):
             cls.ViLT_MLM,
             cls.ViLT_VQA,
             cls.VIT_GPT2,
-            cls.DEIT_DISTILBERT,
+            cls.DEIT_BERT,
         )
 
 

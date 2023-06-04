@@ -476,7 +476,7 @@ class ViTGPT2Config(BackboneConfig):
         )
 
 
-@registry.register(AvailableBackbones.DEIT_DISTILBERT)
+@registry.register(AvailableBackbones.DEIT_BERT)
 @dataclasses.dataclass(frozen=True)
 class DeitDistilBertConfig(DEITConfig, DISTILBERTConfig):
     """DEIT-BERT is a transformer Encoder-Decoder model."""
@@ -485,7 +485,7 @@ class DeitDistilBertConfig(DEITConfig, DISTILBERTConfig):
     def get_model(cls):
         """Get the model."""
         return VisionEncoderDecoderModel.from_encoder_decoder_pretrained(
-            "facebook/deit-base-distilled-patch16-224", "distilbert-base-uncased"
+            "facebook/deit-base-distilled-patch16-224", "bert-base-uncased"
         )
 
     @classmethod

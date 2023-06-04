@@ -4,6 +4,7 @@ from typing import Any
 
 import torch
 from torch.types import Device
+from torchvision.transforms import transforms
 from transformers import BatchEncoding, BatchFeature
 
 from utils.types import BatchType
@@ -63,3 +64,27 @@ def convert_batch_to_sequence_of_mappings(batch: Mapping[str, Sequence[Any]]) ->
     else:
         some_value = next(iter(batch.values()))
         return [{key: value[i] for key, value in batch.items()} for i in range(len(some_value))]
+
+
+def default_collator(image_batch_property: str, batch: BatchType) -> BatchType:
+    """
+    Perform basic collation so the batch can be successfully returned by the DataLoader.
+
+    The standard collator fails when the batch contains e.g. PIL.Image objects.
+    This collator is a workaround for that.
+    The preprocessing of the batch is expected to be done by the dedicated collator.
+    This function will:
+
+    - Convert the PIL.Image objects to torch.Tensor objects.
+
+    :param image_batch_property: The name of the property that contains the image batch.
+    :param batch: The batch to collate.
+    :return: The collated batch.
+    """
+    batch = convert_batch_to_sequence_of_mappings(batch)
+    return [
+        sample | {image_batch_property: transforms.ToTensor()(sample[image_batch_property])}
+        if image_batch_property in sample
+        else sample
+        for sample in batch
+    ]

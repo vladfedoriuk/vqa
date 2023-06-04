@@ -1,4 +1,5 @@
 """The masked language modeling lightning module."""
+from functools import partial
 from typing import Any, cast
 
 import datasets
@@ -9,11 +10,16 @@ from transformers import ViltForMaskedLM
 
 from collators import ClassificationCollator
 from collators.daquar import DaquarDataCollatorForMaskedLanguageModeling
+from collators.vqa_v2 import VqaV2DataCollatorForMaskedLanguageModeling
 from config.env import NUM_WORKERS
 from models.backbones.configs import ViLTMLMConfig
-from transforms.noop import noop
-from utils.batch import batch_to_device, convert_batch_to_mapping_of_features
-from utils.datasets.daquar import load_daquar_datasets
+from transforms.noop import default_noop_transforms_factory
+from utils.batch import (
+    batch_to_device,
+    convert_batch_to_mapping_of_features,
+    default_collator,
+)
+from utils.datasets import DatasetsLoadingFunctionType
 from utils.types import BatchType, StageType
 
 
@@ -22,6 +28,9 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
 
     def __init__(
         self,
+        collator_cls: type[DaquarDataCollatorForMaskedLanguageModeling]
+        | type[VqaV2DataCollatorForMaskedLanguageModeling],
+        dataset_loading_function: DatasetsLoadingFunctionType,
         batch_size: int = 64,
     ):
         """
@@ -40,8 +49,17 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         self.image_processor = self.vilt_backbone_config.get_image_processor()
         self.batch_size = batch_size
 
+        self.batch_image_transforms = default_noop_transforms_factory()
+        self.single_image_transforms = default_noop_transforms_factory()
+        self.batch_text_transforms = default_noop_transforms_factory()
+        self.single_text_transforms = default_noop_transforms_factory()
+
+        self._collator_cls = collator_cls
+        self._dataset_loading_function = dataset_loading_function
+
         self._data: dict[datasets.Split, datasets.Dataset] = {}
         self._collator_fn: ClassificationCollator | None = None
+        self._default_collator_fn = partial(default_collator, self._collator_cls.IMAGE_BATCH_PROPERTY)
 
     def configure_optimizers(self) -> Any:
         """Configure the optimizers."""
@@ -114,6 +132,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def val_dataloader(self):
@@ -127,6 +146,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def test_dataloader(self):
@@ -140,6 +160,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def setup(self, stage: StageType) -> None:
@@ -149,16 +170,16 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :param stage:
         :return: None.
         """
-        self._data = load_daquar_datasets()
-        self._collator_fn = DaquarDataCollatorForMaskedLanguageModeling(
+        self._data = self._dataset_loading_function()
+        self._collator_fn = self._collator_cls(
             tokenizer=self.tokenizer,
             image_processor=self.image_processor,
             image_encoder_config=self.vilt_backbone_config,
             text_encoder_config=self.vilt_backbone_config,
-            single_image_transforms=noop,
-            single_text_transforms=noop,  # TODO: Use augmentations
-            batch_image_transforms=noop,
-            batch_text_transforms=noop,
+            single_image_transforms=self.single_image_transforms[stage],
+            single_text_transforms=self.single_text_transforms[stage],
+            batch_image_transforms=self.batch_image_transforms[stage],
+            batch_text_transforms=self.batch_text_transforms[stage],
         )
 
     def on_after_batch_transfer(self, batch: BatchType, dataloader_idx: int):
@@ -183,7 +204,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         :return: The masked answer prediction.
         """
         batch = convert_batch_to_mapping_of_features(batch)
-        questions = batch[DaquarDataCollatorForMaskedLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
+        questions = batch[self._collator_cls.ORIGINAL_QUESTION_BATCH_PROPERTY]
         processor = ViLTMLMConfig.get_processor()
         tokenizer = ViLTMLMConfig.get_tokenizer()
         masked_questions = [
@@ -192,7 +213,7 @@ class ViLTMaskedLanguageModelingModule(pl.LightningModule):
         inputs = ViLTMLMConfig.get_processed_text_and_image(
             processor=processor,
             text=masked_questions,
-            image=batch[DaquarDataCollatorForMaskedLanguageModeling.IMAGE_BATCH_PROPERTY],
+            image=batch[self._collator_cls.IMAGE_BATCH_PROPERTY],
         )
         inputs = batch_to_device(inputs, self.device)
         mask_token_indices = inputs["input_ids"] == tokenizer.mask_token_id

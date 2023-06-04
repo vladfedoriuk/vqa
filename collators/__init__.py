@@ -7,6 +7,7 @@ from typing import ClassVar, Final, Generic, ParamSpec, TypeVar, cast
 
 import PIL.Image
 import torch
+from torchvision.transforms import transforms
 from transformers import PreTrainedTokenizer
 from transformers.image_processing_utils import BaseImageProcessor
 
@@ -128,7 +129,19 @@ class VQAMultimodalCollatorMixin:
     QUESTION_BATCH_PROPERTY: ClassVar[str] = "question"
 
     @staticmethod
-    def _ensure_image_is_rgb(image: PIL.Image.Image):
+    def _ensure_image_is_pil(image: PIL.Image.Image | torch.Tensor) -> PIL.Image.Image:
+        """
+        Ensure the image is PIL.
+
+        :param image: The image.
+        :return: The image.
+        """
+        if isinstance(image, torch.Tensor):
+            image = transforms.ToPILImage()(image.cpu())
+        return image
+
+    @staticmethod
+    def _ensure_image_is_rgb(image: PIL.Image.Image) -> PIL.Image.Image:
         """
         Ensure the image is RGB.
 
@@ -150,7 +163,7 @@ class VQAMultimodalCollatorMixin:
             self.image_encoder_config.get_processed_image(
                 self.image_processor,
                 image=[
-                    self.single_image_transforms(self._ensure_image_is_rgb(image))
+                    self.single_image_transforms(self._ensure_image_is_rgb(self._ensure_image_is_pil(image)))
                     for image in batch[self.IMAGE_BATCH_PROPERTY]
                 ],
             )
@@ -211,6 +224,7 @@ class VQAClassificationCollatorMixin(VQAMultimodalCollatorMixin):
 
 
 class MultiModalCollatorRegistry(Registry[AvailableDatasets, type[MultiModalCollator]]):
+    # TODO: Change the value type to (type, role) - role: classification, masked_lm, casual_lm, ...
     """The multi-modal collator registry."""
 
     @classmethod

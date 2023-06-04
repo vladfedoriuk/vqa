@@ -1,4 +1,5 @@
 """The language generation Encoder-Decoder module using ViT and GPT-2 pretrained backbone."""
+from functools import partial
 from typing import Any, cast
 
 import datasets
@@ -9,20 +10,29 @@ from transformers.generation_utils import GenerationMixin
 
 from collators import ClassificationCollator
 from collators.daquar import DaquarDataCollatorForLanguageModeling
+from collators.vqa_v2 import VqaV2DataCollatorForLanguageModeling
 from config.env import NUM_WORKERS
+from models.backbones import BackboneConfig
 from models.backbones.configs import ViTGPT2Config
-from transforms.noop import noop
-from utils.batch import batch_to_device, convert_batch_to_mapping_of_features
-from utils.datasets.daquar import load_daquar_datasets
+from transforms.noop import default_noop_transforms_factory
+from utils.batch import (
+    batch_to_device,
+    convert_batch_to_mapping_of_features,
+    default_collator,
+)
+from utils.datasets import DatasetsLoadingFunctionType
 from utils.types import BatchType, StageType
 
 
-class ViTGPT2EncoderDecoderModule(pl.LightningModule):
-    """The ViLT masked language modeling module."""
+class ConfigurableEncoderDecoderModule(pl.LightningModule):
+    """The language generation Encoder-Decoder module using a given config."""
 
     def __init__(
         self,
+        collator_cls: type[DaquarDataCollatorForLanguageModeling] | type[VqaV2DataCollatorForLanguageModeling],
+        dataset_loading_function: DatasetsLoadingFunctionType,
         batch_size: int = 64,
+        config: type[BackboneConfig] = ViTGPT2Config,
     ):
         """
         Initialize the module.
@@ -31,10 +41,13 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         It uses the ViLT backbone to extract the multimodal embedding and then
         uses a classifier to classify the multimodal embedding.
 
+        :param config: The config.
+        :param collator_cls: The collator class.
+        :param dataset_loading_function: The dataset loading function.
         :param batch_size: The batch size.
         """
         super().__init__()
-        self.backbone_config = ViTGPT2Config
+        self.backbone_config = config
         self.backbone_model = self.backbone_config.get_model()
         self.tokenizer = self.backbone_config.get_tokenizer()
         self.image_processor = self.backbone_config.get_image_processor()
@@ -42,6 +55,15 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
 
         self._data: dict[datasets.Split, datasets.Dataset] = {}
         self._collator_fn: ClassificationCollator | None = None
+
+        self.batch_image_transforms = default_noop_transforms_factory()
+        self.single_image_transforms = default_noop_transforms_factory()
+        self.batch_text_transforms = default_noop_transforms_factory()
+        self.single_text_transforms = default_noop_transforms_factory()
+
+        self._collator_cls = collator_cls
+        self._dataset_loading_function = dataset_loading_function
+        self._default_collator_fn = partial(default_collator, self._collator_cls.IMAGE_BATCH_PROPERTY)
 
     def configure_optimizers(self) -> Any:
         """Configure the optimizers."""
@@ -111,6 +133,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def val_dataloader(self):
@@ -124,6 +147,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def test_dataloader(self):
@@ -137,6 +161,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
             batch_size=self.batch_size,
             num_workers=NUM_WORKERS,
             drop_last=True,
+            collate_fn=self._default_collator_fn,
         )
 
     def setup(self, stage: StageType) -> None:
@@ -146,17 +171,17 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         :param stage:
         :return: None.
         """
-        self._data = load_daquar_datasets()
-        self._collator_fn = DaquarDataCollatorForLanguageModeling(
+        self._data = self._dataset_loading_function()
+        self._collator_fn = self._collator_cls(
             tokenizer=self.tokenizer,
             image_processor=self.image_processor,
             image_encoder_config=self.backbone_config,
             text_encoder_config=self.backbone_config,
-            single_image_transforms=noop,
-            single_text_transforms=noop,
-            batch_image_transforms=noop,
-            batch_text_transforms=noop,  # TODO: Use augmentations
-        )
+            single_image_transforms=self.single_image_transforms[stage],
+            single_text_transforms=self.single_text_transforms[stage],
+            batch_image_transforms=self.batch_image_transforms[stage],
+            batch_text_transforms=self.batch_text_transforms[stage],
+        )  # TODO: Create some kind of factory classmethod for this
 
     def on_after_batch_transfer(self, batch: BatchType, dataloader_idx: int):
         """
@@ -180,7 +205,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         :return: The generated answer.
         """
         batch = convert_batch_to_mapping_of_features(batch)
-        questions = batch[DaquarDataCollatorForLanguageModeling.ORIGINAL_QUESTION_BATCH_PROPERTY]
+        questions = batch[self._collator_cls.ORIGINAL_QUESTION_BATCH_PROPERTY]
         tokenizer = self.backbone_config.get_tokenizer()
         prompts = [f"answer the following question: {question} answer: " for question in questions]
         decoder_inputs = batch_to_device(
@@ -192,7 +217,7 @@ class ViTGPT2EncoderDecoderModule(pl.LightningModule):
         )
         encoder_inputs = batch_to_device(
             self.backbone_config.get_processed_image(
-                processor=self.image_processor, image=batch[DaquarDataCollatorForLanguageModeling.IMAGE_BATCH_PROPERTY]
+                processor=self.image_processor, image=batch[self._collator_cls.IMAGE_BATCH_PROPERTY]
             ),
             self.device,
         )

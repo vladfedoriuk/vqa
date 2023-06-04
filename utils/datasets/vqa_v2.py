@@ -117,6 +117,12 @@ class VqaV2SampleAnswerSpace(PandasAnswerSpace):
     and vice versa.
     """
 
+    def __init__(self):
+        """Initialize the answer space."""
+        super().__init__(
+            keep_n_most_common_answers=100,
+        )
+
     def _do_load_answers_space(self) -> pd.DataFrame:
         """
         Load the answers space.

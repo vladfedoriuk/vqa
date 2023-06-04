@@ -13,7 +13,7 @@ for dataset in daquar vqa_v2_sample
                     --text-encoder-backbone "$text_encoder_backbone" \
                     --fusion "$fusion" \
                     --dataset "$dataset" \
-                    --epochs 30
+                    --epochs 60
               done
           done
       done

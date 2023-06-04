@@ -47,6 +47,9 @@ class AvailableBackbones(str, RegistryKey):
     ViLT_VQA = "dandelin/vilt-b32-finetuned-vqa"
     # Model from https://huggingface.co/nlpconnect/vit-gpt2-image-captioning
     VIT_GPT2 = "nlpconnect/vit-gpt2-image-captioning"
+    # The ViT-BERT encoder-decoder model.
+    # The cross-attention is used to fuse the image and text representations.
+    DEIT_DISTILBERT = "deit-distilbert-encoder-decoder"
 
     # TODO: differentiate between encoder backbones and encoder-decoder backbones
     @classproperty
@@ -78,6 +81,7 @@ class AvailableBackbones(str, RegistryKey):
             cls.ViLT_MLM,
             cls.ViLT_VQA,
             cls.VIT_GPT2,
+            cls.DEIT_DISTILBERT,
         )
 
 
@@ -227,7 +231,13 @@ class TextEncoderMixin:
         tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
-        return model(**tokenizer_output).pooler_output
+        model_kwargs = {
+            "input_ids": tokenizer_output["input_ids"],
+            "attention_mask": tokenizer_output["attention_mask"],
+        }
+        if "token_type_ids" in tokenizer_output:
+            model_kwargs["token_type_ids"] = tokenizer_output["token_type_ids"]
+        return model(**model_kwargs).pooler_output
 
     @classmethod
     def get_text_representation(
@@ -280,11 +290,12 @@ def prepare_backbones(backbones: BackbonesConfigs) -> BackbonesConfigValues:
     :param backbones: The backbones.
     :return: The backbones config classes, models, tokenizers, and processors.
     """
-    image_backbone = backbones.get("image_backbone")
+    image_backbone = backbones.get("image_backbone")  # TODO: use __contains__ instead of get
     text_backbone = backbones.get("text_backbone")
     multimodal_backbone = backbones.get("multimodal_backbone")
 
-    if not any([image_backbone, text_backbone, multimodal_backbone]):
+    if not any([image_backbone, text_backbone, multimodal_backbone]):  # TODO: Refactor this
+        # TODO: Either both image and text backbones or multimodal backbone must be specified.
         raise ValueError("At least one backbone must be specified.")
 
     config_values = {}

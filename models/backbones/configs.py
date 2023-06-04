@@ -175,7 +175,13 @@ class TextEncoderLastHiddenStateMixin(TextEncoderMixin):
         tokenizer_output: BatchEncoding,
     ) -> torch.Tensor:
         """Get the text representation."""
-        return model(**tokenizer_output).last_hidden_state[:, 0, :]
+        model_kwargs = {
+            "input_ids": tokenizer_output["input_ids"],
+            "attention_mask": tokenizer_output["attention_mask"],
+        }
+        if "token_type_ids" in tokenizer_output:
+            model_kwargs["token_type_ids"] = tokenizer_output["token_type_ids"]
+        return model(**model_kwargs).last_hidden_state[:, 0, :]
 
 
 @registry.register(AvailableBackbones.ROBERTA)
@@ -453,6 +459,33 @@ class ViTGPT2Config(BackboneConfig):
         return processor(
             images=image,
             return_tensors="pt",
+        )
+
+    @classmethod
+    def get_tokenized_text(cls, tokenizer: PreTrainedTokenizer, text: str | list[str]) -> BatchEncoding:
+        """Get the tokenized text."""
+        return tokenizer(
+            text=text,
+            return_tensors="pt",
+            padding=True,
+            max_length=40,
+            truncation=True,
+            return_token_type_ids=True,
+            return_attention_mask=True,
+            return_special_tokens_mask=True,
+        )
+
+
+@registry.register(AvailableBackbones.DEIT_DISTILBERT)
+@dataclasses.dataclass(frozen=True)
+class DeitDistilBertConfig(DEITConfig, DISTILBERTConfig):
+    """DEIT-BERT is a transformer Encoder-Decoder model."""
+
+    @classmethod
+    def get_model(cls):
+        """Get the model."""
+        return VisionEncoderDecoderModel.from_encoder_decoder_pretrained(
+            "facebook/deit-base-distilled-patch16-224", "distilbert-base-uncased"
         )
 
     @classmethod

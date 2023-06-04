@@ -86,6 +86,7 @@ def experiment(
 
     if not any([image_encoder_backbone, text_encoder_backbone, multimodal_backbone]):
         print("You must specify at least one backbone.")
+        # TODO: Either specify both image and text backbones or the multimodal backbone.
         raise typer.Abort()
 
     # Prepare the backbones.

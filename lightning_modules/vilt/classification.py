@@ -8,7 +8,9 @@ from collators import ClassificationCollator
 from lightning_modules.mixins import VQAClassificationMixin
 from models.backbones import BackboneConfig
 from models.classifiers import default_classifier_factory
+from transforms.image import default_image_batch_transforms_factory
 from transforms.noop import default_noop_transforms_factory
+from transforms.text import default_text_batch_transforms_factory
 from utils.datasets import DatasetsLoadingFunctionType
 from utils.datasets.answer_space import AnswerSpace
 from utils.types import BatchType
@@ -60,10 +62,10 @@ class ViLTClassificationModule(VQAClassificationMixin, pl.LightningModule):
         self._data = None
         self._collator_fn = None
 
+        self.batch_image_transforms = default_image_batch_transforms_factory()
         self.single_image_transforms = default_noop_transforms_factory()
-        self.batch_image_transforms = default_noop_transforms_factory()  # TODO: Use augmentations
+        self.batch_text_transforms = default_text_batch_transforms_factory()
         self.single_text_transforms = default_noop_transforms_factory()
-        self.batch_text_transforms = default_noop_transforms_factory()  # TODO: Use augmentations
 
         self.loss = torch.nn.CrossEntropyLoss()
 
